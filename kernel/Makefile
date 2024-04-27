@@ -28,10 +28,12 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 %.o : %.S	# 不在使用.s, 全部使用能预处理的.S
 	@${CC} ${CFLAGS} -c -o $*.o $<
 
-OBJS  = sched.o system_call.o traps.o asm.o fork.o \
-	panic.o printk.o vsprintf.o tty_io.o console.o \
-	keyboard.o rs_io.o hd.o sys.o exit.o serial.o \
-	mktime.o
+#OBJS  = sched.o system_call.o traps.o asm.o fork.o \
+#	panic.o printk.o vsprintf.o tty_io.o console.o \
+#	keyboard.o rs_io.o hd.o sys.o exit.o serial.o \
+#	mktime.o
+
+OBJS  = sched.o
 
 kernel.o: $(OBJS)
 	$(LD) -r -o kernel.o $(OBJS)

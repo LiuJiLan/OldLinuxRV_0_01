@@ -25,7 +25,7 @@ OBJCOPY = ${CROSS_COMPILE}objcopy
 OBJDUMP = ${CROSS_COMPILE}objdump
 
 
-ARCHIVES=kernel/kernel.o mm/mm.o fs/fs.o
+ARCHIVES=kernel/kernel.o mm/mm.o # fs/fs.o
 LIBS	=lib/lib.a
 
 %.o : %.c
@@ -71,6 +71,7 @@ lib/lib.a:
 
 
 clean:
+	rm -f system.lds	# new
 	rm -f Image System.map tmp_make boot/boot core
 	rm -f init/*.o boot/*.o tools/system tools/build
 	(cd mm;make clean)
@@ -88,8 +89,8 @@ dep:
 	(cd mm; make dep)
 
 # 可以这样来在链接脚本中引入头文件
-#system.ld:
-#	${CPP} system.lds -o system.ld
+system.lds:
+	${CPP} ./kernel/system.lds.S -o system.lds
 
 DEBUG = ./debug
 
@@ -98,10 +99,11 @@ QFLAGS = -smp 2 -M virt -bios default
 QFLAGS += -m 128M -nographic
 #QFLAGS += -serial pipe:/tmp/guest
 
-tools/system.elf: system.ld boot/head.o  \
+tools/system.elf: system.lds boot/head.o  \
 #	$(ARCHIVES) $(LIBS)
 	$(LD) $(LDFLAGS) -T system.ld \
-	boot/head.o \
+	boot/head.o init/main.o	\
+	$(ARCHIVES) \
     -o tools/system.elf > System.map
 #	$(LD) $(LDFLAGS) \ boot/head.o init/main.o \
 #	$(ARCHIVES) \
