@@ -15,12 +15,11 @@ CFLAGS 	+= -I../include
 CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 
 %.o : %.c
-	$(CC) $(CFLAGS) \
-	-nostdinc -Iinclude -c -o $*.o $<
+	$(CC) $(CFLAGS)  -c -o $*.o $<
 %.o : %.S	# 不在使用.s, 全部使用能预处理的.S
 	@${CC} ${CFLAGS} -c -o $*.o $<
 
-OBJS	= memory.o page.o
+OBJS	= memory.o # page.o
 
 all: mm.o
 
@@ -37,3 +36,5 @@ dep:
 	cp tmp_make Makefile
 
 ### Dependencies:
+memory.o: memory.c ../include/asm/types.h ../include/linux/mm.h \
+ ../include/linux/config.h

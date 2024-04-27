@@ -1,10 +1,16 @@
 #include <asm/system.h>
-#include <asm/ptrace.h>
 #include <linux/config.h>
-#include <linux/sched.h>
 
 // 只支持-顺序-单核-启动!!!
 
+
+
+// 暂时还没学会Linux的那个宏,
+// 只能用这张方式了, 否则会报错
+#define PT_REGS_SIZE        288
+#define PAGE_SIZE           4096
+#define PAGE_SHIFT          12
+#define THREAD_SIZE         (PAGE_SIZE << 1)
 
 .text
 
@@ -46,8 +52,8 @@ entry:
     REG_S a0, (a2)
 
     // 第一次设置内核(服务)运行的环境
-    la tp, init_task
-    la sp, init_task + THREAD_SIZE
+    la tp, init_task_union
+    la sp, init_task_union + THREAD_SIZE
     addi sp, sp, -PT_REGS_SIZE
 
     // 准备好dtb作为参数
@@ -69,8 +75,8 @@ for_gdb_virtual:
     //  用于调试
     //  从这里我们进入了VA中
     // 第二次设置内核(服务)运行的环境
-    la tp, init_task
-    la sp, init_task + THREAD_SIZE
+    la tp, init_task_union
+    la sp, init_task_union + THREAD_SIZE
     addi sp, sp, -PT_REGS_SIZE
     tail start_kernel
 
@@ -87,16 +93,20 @@ relocate_enable_mmu:
 
     // 注意, 这一步是接口
 	mv a2, a0
+	srl a2, a2, PAGE_SHIFT
 
     // 暂时只支持sv39
 	li a1, SATP_MODE_39
 
-    // 注意, 我们sfence.vma与Linux不同
+	// 也是接口
+	or a2, a2, a1
+
 	la a0, trampoline_pg_dir
     srl a0, a0, PAGE_SHIFT
     or a0, a0, a1
-    csrw CSR_SATP, a0
     sfence.vma
+    csrw CSR_SATP, a0
+
 
     .align 2
     1:
@@ -110,8 +120,9 @@ relocate_enable_mmu:
 setup_trap_vector:
     ret
 
-
-
-
+#undef PT_REGS_SIZE
+#undef PAGE_SIZE
+#undef PAGE_SHIFT
+#undef THREAD_SIZE
 
 

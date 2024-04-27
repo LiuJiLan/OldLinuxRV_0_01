@@ -11,14 +11,16 @@
 #define REGBYTES        8
 #define REG_S           sd
 #define REG_L           ld
-#define RISCV_PTR		.word
-#define RISCV_SZPTR		4
-#define RISCV_LGPTR		2
+#define RISCV_PTR		.dword
+#define RISCV_SZPTR		8
+#define RISCV_LGPTR		3
 
 
-#define VA_KERNEL   0xFFFFFFC000000000U
-#define PA_KERNEL   RAM_START + SBI_SIZE
-#define V_P_DIFF    VA_KERNEL - PA_KERNEL
+#define VA_KERNEL       0xFFFFFFC000000000U
+#define LD_VA_KERNEL    0xFFFFFFC000000000 // 为了链接脚本
+#define PA_KERNEL       (RAM_START + SBI_SIZE)
+#define LD_PA_KERNEL    (LD_RAM_START + LD_SBI_SIZE)
+#define V_P_DIFF        (VA_KERNEL - PA_KERNEL)
 
 // 还是沿用xv6-riscv的宏
 #define V2P(a) (((unsigned long) (a)) - V_P_DIFF)   //  64位下改了数据类型
@@ -31,9 +33,11 @@
 
 //  ### //
 //  这块放置不同平台相关的数值
-#define RAM_START   0x80000000UL    // QEMU的内存起点
-#define RAM_SIZE    0x08000000UL    // 128MiB 比赛要求的QEMU大小为128M
-#define SBI_SIZE    0x00200000      // rv64的2MiB的SBI
+#define RAM_START       0x80000000U    // QEMU的内存起点
+#define LD_RAM_START    0x80000000
+#define RAM_SIZE        0x08000000U    // 128MiB 比赛要求的QEMU大小为128M
+#define SBI_SIZE        0x00200000U    // rv64的2MiB的SBI
+#define LD_SBI_SIZE     0x00200000
 
 //  注意给SBI的时钟中断间隔应该为
 //  TIMEBASE_FREQUENCY / HZ

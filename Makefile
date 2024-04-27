@@ -84,24 +84,25 @@ dep:
 	sed '/\#\#\# Dependencies/q' < Makefile > tmp_make
 	(for i in init/*.c;do echo -n "init/";$(CPP) -M $$i;done) >> tmp_make
 	cp tmp_make Makefile
-	(cd fs; make dep)
+	#(cd fs; make dep)
 	(cd kernel; make dep)
 	(cd mm; make dep)
 
 # 可以这样来在链接脚本中引入头文件
+# -P不会生成#开头的额外注释
 system.lds:
-	${CPP} ./kernel/system.lds.S -o system.lds
+	${CPP} -P ./kernel/system.lds.S -o system.lds
 
 DEBUG = ./debug
 
 QEMU = qemu-system-riscv64
 QFLAGS = -smp 2 -M virt -bios default
 QFLAGS += -m 128M -nographic
-#QFLAGS += -serial pipe:/tmp/guest
+QFLAGS += -monitor telnet:127.0.0.1:5555,server,nowait
 
-tools/system.elf: system.lds boot/head.o  \
-#	$(ARCHIVES) $(LIBS)
-	$(LD) $(LDFLAGS) -T system.ld \
+tools/system.elf: system.lds boot/head.o init/main.o \
+	$(ARCHIVES) # $(LIBS)
+	$(LD) $(LDFLAGS) -T system.lds \
 	boot/head.o init/main.o	\
 	$(ARCHIVES) \
     -o tools/system.elf > System.map
@@ -130,3 +131,4 @@ debug: tools/kernel.elf
 	${GDB} tools/kernel.elf -q -x $(DEBUG)/gdbinit.txt
 
 ### Dependencies:
+init/main.o: init/main.c

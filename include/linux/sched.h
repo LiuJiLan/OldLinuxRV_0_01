@@ -3,6 +3,8 @@
 
 #include <asm/ptrace.h>
 
+union task_union init_task_union;
+
 // thread_info
 
 #define THREAD_SIZE         (PAGE_SIZE << 1)
@@ -32,16 +34,11 @@ struct thread_struct {
     unsigned long bad_cause;
 };
 
-#define INIT_THREAD {					    \
-	.sp = THREAD_SIZE + (long)&init_task,	\
+#define INIT_THREAD {					        \
+	.sp = THREAD_SIZE + (long)&init_task_union,	\
 }
 
 #define STACK_ALIGN		16
-
-static __always_inline void *task_stack_page(const struct task_struct *task)
-{
-    return task->stack;
-}
 
 #define task_pt_regs(tsk)						                \
 	((struct pt_regs *)((tsk) + THREAD_SIZE		\
@@ -88,8 +85,10 @@ struct task_struct {
     struct thread_struct		thread;
 };
 
+static inline void *task_stack_page(const struct task_struct *task){
+    return task->stack;
+}
 
-extern struct task_struct init_task;
-
+#define init_task ((struct task_struct *)&(init_task_union.task))
 
 #endif

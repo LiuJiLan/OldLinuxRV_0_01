@@ -34,8 +34,6 @@ typedef uint64              pte_t;
 
 // ##################################
 
-
-
-extern pte_t trampoline_pg_dir;
+extern pte_t swapper_pg_dir[];
 
 #endif
