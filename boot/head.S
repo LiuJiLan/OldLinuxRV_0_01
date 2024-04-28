@@ -1,27 +1,17 @@
-#include <asm/system.h>
 #include <linux/config.h>
+#include <asm/system.h>
+#include <asm/asm.h>
 
 // 只支持-顺序-单核-启动!!!
-
-
-
-// 暂时还没学会Linux的那个宏,
-// 只能用这张方式了, 否则会报错
-#define PT_REGS_SIZE        288
-#define PAGE_SIZE           4096
-#define PAGE_SHIFT          12
-#define THREAD_SIZE         (PAGE_SIZE << 1)
 
 .text
 
 .global _start
 _start = V2P_WO(entry)
 
-.global for_gdb_physical
-for_gdb_physical = V2P_WO(for_gdb_virtual)
-
 .global entry
 
+// 4 bytes 对齐
 .align 2
 entry:
     // 关中断, 清中断pending
@@ -29,11 +19,19 @@ entry:
 	csrw CSR_IE, zero
 	csrw CSR_IP, zero
 
+	// 与Linux不同, 我们使用sstatus的全局中断来控制
+	li t0, SR_SIE
+	csrc CSR_STATUS, t0
+
     // if use gp, should load here
 
     // 清除sstatus中扩展功能位
     li t0, SR_FS_VS
     csrc CSR_STATUS, t0
+
+    // 确保内核能访问用户态内存
+    li t0, SR_SUM
+    csrs CSR_STATUS, t0
 
     // 清bss
     //  相对地址, 所以现在a3、a4中都是物理地址
@@ -54,7 +52,7 @@ entry:
     // 第一次设置内核(服务)运行的环境
     la tp, init_task_union
     la sp, init_task_union + THREAD_SIZE
-    addi sp, sp, -PT_REGS_SIZE
+    addi sp, sp, -PT_SIZE
 
     // 准备好dtb作为参数
     mv a0, a1
@@ -69,15 +67,13 @@ entry:
     la a0, trampoline_pg_dir
     call relocate_enable_mmu
 
-for_gdb_virtual:
+    //  从这里我们进入了VA中
     call setup_trap_vector
 
-    //  用于调试
-    //  从这里我们进入了VA中
     // 第二次设置内核(服务)运行的环境
     la tp, init_task_union
     la sp, init_task_union + THREAD_SIZE
-    addi sp, sp, -PT_REGS_SIZE
+    addi sp, sp, -(PT_SIZE)
     tail start_kernel
 
 .align 2
@@ -118,11 +114,12 @@ relocate_enable_mmu:
     ret
 
 setup_trap_vector:
-    ret
+    la a0, handle_exception
+    csrw CSR_TVEC, a0
 
-#undef PT_REGS_SIZE
-#undef PAGE_SIZE
-#undef PAGE_SHIFT
-#undef THREAD_SIZE
+    // 标识我们当前在内核
+    csrw CSR_SCRATCH, zero
+
+    ret
 
 

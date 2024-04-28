@@ -1,7 +1,7 @@
 #ifndef _PTRACE_H
 #define _PTRACE_H
 
-#include <asm/types.h>
+#include <sys/types.h>
 
 struct pt_regs {
     unsigned long epc;

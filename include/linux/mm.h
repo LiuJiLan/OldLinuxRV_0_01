@@ -1,10 +1,7 @@
 #ifndef _MM_H
 #define _MM_H
 
-#include <asm/types.h>
-
-#define PAGE_SIZE           4096
-#define PAGE_SHIFT          12
+#include <sys/types.h>
 
 // rv64有效
 typedef uint64              pte_t;

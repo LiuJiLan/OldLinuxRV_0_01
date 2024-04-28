@@ -2,12 +2,13 @@
 #define _SCHED_H
 
 #include <asm/ptrace.h>
+#include <linux/config.h>
 
 union task_union init_task_union;
 
 // thread_info
 
-#define THREAD_SIZE         (PAGE_SIZE << 1)
+
 
 struct thread_info {
     unsigned long   flags;      /* low level flags */

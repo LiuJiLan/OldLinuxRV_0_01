@@ -1,6 +1,8 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
+#include <asm/asm.h>
+
 typedef char                int8;
 typedef unsigned char       uint8;
 typedef short               int16;
@@ -26,8 +28,6 @@ typedef unsigned long       uptr_t;
 typedef unsigned long       regs_t;
 typedef unsigned long       size_t;
 typedef long                ssize_t;
-
-#include <linux/mm.h>
 
 #define PGSIZE              PAGE_SIZE
 #define PGSHIFT             PAGE_SHIFT

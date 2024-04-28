@@ -39,3 +39,67 @@ head.S流程中暂时简化了RISC-V Linux的启动流程。不考虑XIP; 仅支
 
 打算以PMD为颗粒度, 便意味着要设置更多的页表项。此时使用C语言来处理是一个好选择, 同时也保证了不同内存起点与大小的灵活性。未来也可以直接在这个函数中添加dtb的解析。但不是在Linux 0.01的移植中, 因为Linux 0.01自身是手动设置的内存, 这个地方可以复古点。
 
+
+
+# Log 2 进入路径和退出路径 + 异常/中断处理
+
+进入路径和退出路径可以直接copy RISC-V Linux。
+
+
+
+page.s, system_call.s, rs_io.s, keyboard.s, asm.s 都被归入entry.S中。
+
+
+
+Linux RISC-V为每个异常都设置了对应的处理, 这是没有必要的
+$$
+\text{Exceptions}\begin{cases}
+  
+  \text{Processor detected}\begin{cases}
+  
+  	\text{Illegal instruction}\\
+  
+    \text{address misaligned}\begin{cases}
+    \text{Instruction address misaligned : 0}\\
+    \text{Load address misaligned				 : 4}\\
+    \text{Store/AMO address misaligned	 : 6}\\
+    \end{cases}\\
+    
+    \\
+    
+    \text{access fault}\begin{cases}
+    \text{Instruction access fault 	: 1}\\
+    \text{Load access fault 				: 5}\\
+    \text{Store/AMO access fault 		: 7}\\
+    \end{cases}\\
+    
+    \\
+    \text{page fault}\begin{cases}
+    \text{Instruction page fault 	: 12}\\
+    \text{Load page fault 				: 13}\\
+    \text{Store/AMO page fault 		: 15}\\
+    \end{cases}\\
+  
+  \end{cases}\\
+
+  \\
+
+  \text{Programmed}\begin{cases}
+  
+    \text{ecall}\begin{cases}
+    \text{Environment call from U-mode : 8}\\
+    \text{Environment call from S-mode : 9}\\
+    \text{Environment call from M-mode : 11}\\
+    \end{cases}\\
+    
+    \\
+    
+    \text{ebreak}\begin{cases}
+    \text{Breakpoint : 3}\\
+    \end{cases}\\
+  
+  \end{cases}\\
+  
+  
+\end{cases}\\
+$$

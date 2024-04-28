@@ -8,13 +8,7 @@
 #error "Now, codes only support RISC-V 64."
 #endif
 
-#define REGBYTES        8
-#define REG_S           sd
-#define REG_L           ld
-#define RISCV_PTR		.dword
-#define RISCV_SZPTR		8
-#define RISCV_LGPTR		3
-
+#define THREAD_SIZE         (PAGE_SIZE << 1)
 
 #define VA_KERNEL       0xFFFFFFC000000000U
 #define LD_VA_KERNEL    0xFFFFFFC000000000 // 为了链接脚本

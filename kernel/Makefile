@@ -32,7 +32,8 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	keyboard.o rs_io.o hd.o sys.o exit.o serial.o \
 #	mktime.o
 
-OBJS  = sched.o
+OBJS  = sched.o entry.o traps.o \
+		printk.o
 
 kernel.o: $(OBJS)
 	$(LD) -r -o kernel.o $(OBJS)
@@ -50,4 +51,4 @@ dep:
 
 ### Dependencies:
 sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
- ../include/asm/types.h ../include/linux/mm.h
+ ../include/sys/types.h ../include/linux/mm.h
