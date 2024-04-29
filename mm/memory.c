@@ -1,12 +1,24 @@
 #include <sys/types.h>
 #include <linux/mm.h>
 #include <linux/config.h>
+#include <asm/ptrace.h>
 
 #define PMD_SIZE     (PAGE_SIZE << 9)
 
 pte_t trampoline_pg_dir[];
 pte_t trampoline_pg_l2pte[];
 uptr_t dtb_va = 0;
+
+#define LOW_MEM BUFFER_END
+
+#define PAGING_MEMORY (HIGH_MEMORY - LOW_MEM)
+#define PAGING_PAGES (PAGING_MEMORY/4096)
+#define MAP_NR(addr) (((addr)-LOW_MEM)>>12)
+
+static unsigned short mem_map [ PAGING_PAGES ] = {0,};
+
+
+
 
 void setup_vm(uptr_t dtb_pa) {
     dtb_va = dtb_pa + V_P_DIFF;
@@ -33,6 +45,10 @@ void setup_vm(uptr_t dtb_pa) {
         }
         pa_start += PMD_SIZE;
     }
+}
+
+void do_page_fault(struct pt_regs * regs) {
+    regs->epc += 4;
 }
 
 __attribute__((__aligned__(PGSIZE)))

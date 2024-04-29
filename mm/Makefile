@@ -37,5 +37,6 @@ dep:
 	cp tmp_make Makefile
 
 ### Dependencies:
-memory.o: memory.c ../include/sys/types.h ../include/linux/mm.h \
- ../include/linux/config.h
+memory.o: memory.c ../include/sys/types.h ../include/asm/asm.h \
+ ../include/asm/asm_offsets.h ../include/linux/mm.h \
+ ../include/linux/config.h ../include/asm/ptrace.h

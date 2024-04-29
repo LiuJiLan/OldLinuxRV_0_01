@@ -1,16 +1,28 @@
+#include <linux/kernel.h>
+
 unsigned long boot_cpu_hartid;
 
 static inline void ebreak() {
     asm volatile("ebreak");
 }
 
+extern void trap_init(void);
+
+
 void start_kernel(void){
-    // 检查sp应该是相同的
+    trap_init();
+    printk("We are here at %ld\n", boot_cpu_hartid);
     ebreak();
-    ebreak();
+
+
+
 
     while (1) {
 
     }
 
+}
+
+void print_debug(char* str) {
+    return;
 }

@@ -101,15 +101,12 @@ QFLAGS += -m 128M -nographic
 QFLAGS += -monitor telnet:127.0.0.1:5555,server,nowait
 
 tools/system.elf: system.lds boot/head.o init/main.o \
-	$(ARCHIVES) # $(LIBS)
+	$(ARCHIVES)  $(LIBS)
 	$(LD) $(LDFLAGS) -T system.lds \
 	boot/head.o init/main.o	\
 	$(ARCHIVES) \
+	$(LIBS) \
     -o tools/system.elf > System.map
-#	$(LD) $(LDFLAGS) \ boot/head.o init/main.o \
-#	$(ARCHIVES) \
-#	$(LIBS) \
-#	-o tools/system > System.map
 
 tools/kernel.elf: tools/system.elf
 	#@${CC} ${CFLAGS} -T kernel.ld -o kernel.elf $^
@@ -131,4 +128,4 @@ debug: tools/kernel.elf
 	${GDB} tools/kernel.elf -q -x $(DEBUG)/gdbinit.txt
 
 ### Dependencies:
-init/main.o: init/main.c
+init/main.o: init/main.c include/linux/kernel.h

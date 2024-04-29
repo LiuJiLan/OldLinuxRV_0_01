@@ -3,6 +3,8 @@
 
 #include <asm/asm.h>
 
+#define NULL ((void *) 0)
+
 typedef char                int8;
 typedef unsigned char       uint8;
 typedef short               int16;

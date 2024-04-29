@@ -41,28 +41,15 @@
 
 //############################################
 
+#define HIGH_MEMORY (RAM_START + RAM_SIZE)
+
+#define BUFFER_SIZE 0x400000UL // 先留4MiB
+#define BUFFER_END (RAM_START + SBI_SIZE + BUFFER_SIZE)
+
+
+
 /* #define LASU_HD */
 #define LINUS_HD
-
-/*
- * Amount of ram memory (in bytes, 640k-1M not discounted). Currently 8Mb.
- * Don't make this bigger without making sure that there are enough page
- * directory entries (boot/head.s)
- */
-#if	defined(LINUS_HD)
-#define HIGH_MEMORY (0x800000)
-#elif	defined(LASU_HD)
-#define HIGH_MEMORY (0x400000)
-#else
-#error "must define hd"
-#endif
-
-/* End of buffer memory. Must be 0xA0000, or > 0x100000, 4096-byte aligned */
-#if (HIGH_MEMORY>=0x600000)
-#define BUFFER_END 0x200000
-#else
-#define BUFFER_END 0xA0000
-#endif
 
 /* Root device at bootup. */
 #if	defined(LINUS_HD)

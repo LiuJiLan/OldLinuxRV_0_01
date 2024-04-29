@@ -46,6 +46,8 @@ struct pt_regs {
 
 #define PT_REGS_SIZE sizeof(struct pt_regs)
 
+#define user_mode(regs) (((regs)->status & SR_PP) == 0)
+
 struct riscv_f_ext_state {
     u32 f[32];
     u32 fcsr;

@@ -33,7 +33,7 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	mktime.o
 
 OBJS  = sched.o entry.o traps.o \
-		printk.o
+		printk.o vsprintf.o
 
 kernel.o: $(OBJS)
 	$(LD) -r -o kernel.o $(OBJS)
@@ -50,5 +50,12 @@ dep:
 	cp tmp_make Makefile
 
 ### Dependencies:
+panic.s panic.o: panic.c ../include/linux/kernel.h
+printk.s printk.o: printk.c ../include/stdarg.h ../include/linux/kernel.h
 sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
- ../include/sys/types.h ../include/linux/mm.h
+ ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
+ ../include/linux/config.h
+traps.s traps.o: traps.c ../include/linux/trap.h ../include/asm/ptrace.h \
+ ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h
+vsprintf.s vsprintf.o: vsprintf2.c ../include/stdarg.h ../include/string.h \
+ ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h
