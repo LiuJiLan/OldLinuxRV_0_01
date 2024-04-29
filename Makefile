@@ -128,4 +128,6 @@ debug: tools/kernel.elf
 	${GDB} tools/kernel.elf -q -x $(DEBUG)/gdbinit.txt
 
 ### Dependencies:
-init/main.o: init/main.c include/linux/kernel.h
+init/main.o: init/main.c include/linux/kernel.h include/stdarg.h \
+ include/asm/sbi.h include/sys/types.h include/asm/asm.h \
+ include/asm/asm_offsets.h

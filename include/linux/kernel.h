@@ -1,3 +1,5 @@
+#include <stdarg.h>
+
 /*
  * 'kernel.h' contains some often-used function prototypes etc
  */
@@ -7,4 +9,5 @@ volatile void panic(const char * str);
 int printk(const char * fmt, ...);
 //int tty_write(unsigned ch,char * buf,int count);
 
+int vsprintf(char *buf, const char *fmt, va_list args);
 extern void print_debug(char* str);
