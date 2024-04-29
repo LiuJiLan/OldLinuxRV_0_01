@@ -47,12 +47,23 @@ static const char * pt_regs_name[36];
 void do_break(struct pt_regs * regs) {
 
     printk("Breakpoint From %s Mode.\n", break_from_user[user_mode(regs)]);
-    printk("Register in pt_regs:");
+    printk("Register in pt_regs:\n");
     for (int i = 0; i < 36; i++) {
-        printk("%s:\t\t0x%p", pt_regs_name[i], ((size_t*)regs)[i]);
+        printk("%s:\t\t0x%p\n", pt_regs_name[i], ((size_t*)regs)[i]);
     }
     regs->epc += 4;
 }
+
+extern int sbi_printf(const char *fmt, ...);
+void do_early_trap(struct pt_regs * regs) {
+    sbi_printf("Early Trap caused by %d\nRegister in pt_regs:\n", regs->cause);
+    for (int i = 0; i < 36; i++) {
+        sbi_printf("%s:\t\t0x%p\n", pt_regs_name[i], ((size_t*)regs)[i]);
+    }
+    print_debug("do_early_trap");
+    regs->epc += 4;
+}
+
 
 void do_misaligned(struct pt_regs * regs) {
     die("Misaligned Exception", regs);

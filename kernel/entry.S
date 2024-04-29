@@ -191,6 +191,7 @@ ret_from_fork:
 .align RISCV_LGPTR // 2^3对齐
 excp_vect_table:
     .rept 16 // 暂时仅支持的16个异常(包含reserved)
-    RISCV_PTR do_reserved
+    // RISCV_PTR do_reserved
+    RISCV_PTR do_early_trap // 开发期间调试
     .endr
 excp_vect_table_end:

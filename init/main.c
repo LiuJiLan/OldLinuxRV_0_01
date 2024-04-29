@@ -8,13 +8,15 @@ static inline void ebreak() {
 }
 
 extern void trap_init(void);
+extern void paging_init(void);
 int sbi_printf(const char *fmt, ...);
 
 void start_kernel(void){
+    ebreak();
+    paging_init();
     trap_init();
     sbi_printf("We are here at %ld\n", boot_cpu_hartid);
     ebreak();
-
 
     while (1) {
 

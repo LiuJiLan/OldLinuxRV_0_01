@@ -1,10 +1,12 @@
 #ifndef _MM_H
 #define _MM_H
 
+#include <linux/config.h>
 #include <sys/types.h>
 
 // rv64有效
 typedef uint64              pte_t;
+typedef uint64*             pagetable_t; // 512 PTEs
 #define NPTE                512
 
 // ########## from xv6-riscv
@@ -19,8 +21,10 @@ typedef uint64              pte_t;
 
 // shift a physical address to the right place for a PTE.
 #define PA2PTE(pa) ((((uint64)pa) >> 12) << 10)
+#define VA2PTE(va) PA2PTE(V2P(va))
 
 #define PTE2PA(pte) (((pte) >> 10) << 12)
+#define PTE2VA(pte) P2V(PTE2PA(pte))
 
 #define PTE_FLAGS(pte) ((pte) & 0x3FF)
 
@@ -28,6 +32,17 @@ typedef uint64              pte_t;
 #define PXMASK          0x1FF // 9 bits
 #define PXSHIFT(level)  (PGSHIFT+(9*(level)))
 #define PX(level, va) ((((uint64) (va)) >> PXSHIFT(level)) & PXMASK)
+
+static inline void local_flush_tlb_all(void)
+{
+    asm volatile ("sfence.vma" : : : "memory");
+}
+
+/* Flush one page from local TLB */
+static inline void local_flush_tlb_page(unsigned long addr)
+{
+    asm volatile ("sfence.vma %0" : : "r" (addr) : "memory");
+}
 
 // ##################################
 

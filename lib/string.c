@@ -173,7 +173,7 @@ void *memchr(const void *s, int c, size_t n) {
 void *memset(void *s, int c, size_t count) {
     char *xs = (char *)s;
     while (count-- > 0) {
-        *xs++ = c;
+        *xs++ = (char)c;
     }
     return s;
 }

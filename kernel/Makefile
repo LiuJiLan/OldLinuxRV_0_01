@@ -33,7 +33,7 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	mktime.o
 
 OBJS  = sched.o entry.o traps.o \
-		printk.o vsprintf.o \
+		panic.o printk.o vsprintf.o \
 		sbi.o
 
 kernel.o: $(OBJS)
