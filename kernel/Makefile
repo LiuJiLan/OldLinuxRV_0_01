@@ -32,7 +32,7 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	keyboard.o rs_io.o hd.o sys.o exit.o serial.o \
 #	mktime.o
 
-OBJS  = sched.o entry.o traps.o \
+OBJS  = sched.o system_call.o entry.o traps.o \
 		panic.o printk.o vsprintf.o \
 		sbi.o
 
@@ -58,6 +58,10 @@ sbi.s sbi.o: sbi.c ../include/asm/sbi.h ../include/sys/types.h \
 sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/linux/config.h
+system_call.s system_call.o: system_call.c ../include/asm/ptrace.h \
+ ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
+ ../include/linux/trap.h ../include/asm/system.h ../include/linux/sys.h \
+ ../include/linux/sched.h ../include/linux/config.h
 traps.s traps.o: traps.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/kernel.h ../include/stdarg.h

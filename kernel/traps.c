@@ -80,9 +80,7 @@ void do_impossible_ecall(struct pt_regs * regs) {
     regs->epc += 4;
 }
 
-void system_call(struct pt_regs * regs) {
-    regs->epc += 4;
-}
+extern void system_call(struct pt_regs * regs);
 
 // In mm/memory.c
 extern void do_page_fault(struct pt_regs * regs);
@@ -92,23 +90,24 @@ void do_trap_unknown(struct pt_regs * regs) {
     regs->epc += 4;
 }
 
+// 为早期debug, 先用SBI输出
 void trap_init(void) {
-    set_excp_vect(0,&do_misaligned);
-    set_excp_vect(1,&do_access_fault);
-    set_excp_vect(2,&do_insn_illegal);
-    set_excp_vect(3,&do_break);
-    set_excp_vect(4,&do_misaligned);
-    set_excp_vect(5,&do_access_fault);
-    set_excp_vect(6,&do_misaligned);
-    set_excp_vect(7,&do_access_fault);
+//    set_excp_vect(0,&do_misaligned);
+//    set_excp_vect(1,&do_access_fault);
+//    set_excp_vect(2,&do_insn_illegal);
+//    set_excp_vect(3,&do_break);
+//    set_excp_vect(4,&do_misaligned);
+//    set_excp_vect(5,&do_access_fault);
+//    set_excp_vect(6,&do_misaligned);
+//    set_excp_vect(7,&do_access_fault);
     set_excp_vect(8,&system_call);
-    set_excp_vect(9,&do_impossible_ecall);
-    set_excp_vect(10,&do_reserved);
-    set_excp_vect(11,&do_impossible_ecall);
-    set_excp_vect(12,&do_page_fault);
-    set_excp_vect(13,&do_page_fault);
-    set_excp_vect(14,&do_reserved);
-    set_excp_vect(15,&do_page_fault);
+//    set_excp_vect(9,&do_impossible_ecall);
+//    set_excp_vect(10,&do_reserved);
+//    set_excp_vect(11,&do_impossible_ecall);
+//    set_excp_vect(12,&do_page_fault);
+//    set_excp_vect(13,&do_page_fault);
+//    set_excp_vect(14,&do_reserved);
+//    set_excp_vect(15,&do_page_fault);
 }
 
 static const char * pt_regs_name[36] = {

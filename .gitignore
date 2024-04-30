@@ -4,3 +4,4 @@
 debug/*
 tools/*
 build/*
+*.drawio.bkp
