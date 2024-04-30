@@ -75,10 +75,31 @@ void paging_init(void) {
         ram_start += PAGE_SIZE;
     }
 
+
+    // 临时措施, 未来把外设的页表移到外设初始化里面去
+    // RTC
+    ram_start = 0x10000UL;
+    ram_end = ram_start + PAGE_SIZE;
+    while (ram_start < ram_end) {
+        map_page(swapper_pg_dir, P2V(ram_start), ram_start, perm, 2, 0);
+        ram_start += PAGE_SIZE;
+    }
+
+    // PLIC, 有点浪费, 但是就这样了 (后面两页是UART和VIRT_IO)
+    ram_start = 0xC000000UL;
+    ram_end = 0x10000000UL + PAGE_SIZE * 2;
+    while (ram_start < ram_end) {
+        map_page(swapper_pg_dir, P2V(ram_start), ram_start, perm, 2, 0);
+        ram_start += PAGE_SIZE;
+    }
+
     satp = SATP_MODE_39 | V2P(swapper_pg_dir) >> PGSHIFT;
     csr_write(satp, satp);
     local_flush_tlb_all();
 }
+
+// int device_map_page(...) {
+// }
 
 
 void setup_vm(uptr_t dtb_pa) {

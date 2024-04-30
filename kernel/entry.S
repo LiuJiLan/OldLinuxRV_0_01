@@ -122,7 +122,7 @@ handle_exception:
     bge s4, zero, 1f
 
     // Handle interrupts
-    // tail do_irq
+    tail do_irq
 
     1:
         // Handle exceptions

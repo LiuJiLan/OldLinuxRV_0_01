@@ -7,14 +7,15 @@ static inline void ebreak() {
     asm volatile("ebreak");
 }
 
-extern void trap_init(void);
 extern void paging_init(void);
+extern void trap_init(void);
+extern void irq_init(void);
 int sbi_printf(const char *fmt, ...);
 
 void start_kernel(void){
-    ebreak();
     paging_init();
     trap_init();
+    irq_init();
     sbi_printf("We are here at %ld\n", boot_cpu_hartid);
     ebreak();
 
@@ -43,4 +44,9 @@ int sbi_printf(const char *fmt, ...) {
         sbi_console_putchar(*(c++));
     }
     return i;
+}
+
+// 留给未来的接口
+unsigned long smp_processor_id(void) {
+    return boot_cpu_hartid;
 }

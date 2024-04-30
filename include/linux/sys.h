@@ -85,7 +85,7 @@
 //                            sys_getpgrp,sys_setsid};
 
 extern int sys_fork(struct pt_regs *);
-fn_ptr sys_call_table[] = {sys_fork};
+extern fn_ptr sys_call_table[];
 
 #define nr_system_calls (sizeof(sys_call_table)/sizeof(fn_ptr))
 

@@ -11,3 +11,8 @@ int printk(const char * fmt, ...);
 
 int vsprintf(char *buf, const char *fmt, va_list args);
 extern void print_debug(char* str);
+
+// 暂时不考虑多核的话, 这样就够了
+// 尽量使用接口, 而不是boot_cpu_hartid
+// extern unsigned long boot_cpu_hartid;
+extern unsigned long smp_processor_id(void);

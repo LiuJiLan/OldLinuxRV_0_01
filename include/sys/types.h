@@ -23,6 +23,11 @@ typedef uint32      u32;
 typedef int64       s64;
 typedef uint64      u64;
 
+typedef unsigned char       uint8_t;
+typedef unsigned short      uint16_t;
+typedef unsigned int        uint32_t;
+typedef unsigned long long  uint64_t;
+
 //  平台字长相关(void * 的长度)
 typedef long                ptr_t;
 typedef unsigned long       uptr_t;

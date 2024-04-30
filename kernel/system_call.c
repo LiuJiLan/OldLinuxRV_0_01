@@ -4,6 +4,9 @@
 #include <linux/trap.h>
 #include <linux/sys.h>
 
+// 为了解决一些神奇的报错
+fn_ptr sys_call_table[] = {sys_fork};
+
 void system_call(struct pt_regs * regs) {
     long syscall = regs->a7;    // 当前任务号
 

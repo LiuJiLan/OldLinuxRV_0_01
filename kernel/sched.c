@@ -19,3 +19,8 @@ union task_union init_task_union = {{
         .thread         = INIT_THREAD
     },
 };
+
+
+void do_timer(struct pt_regs * regs) {
+
+}
