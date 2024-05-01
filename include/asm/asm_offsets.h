@@ -100,4 +100,6 @@
 #define TASK_TI_USER_SP 16
 #define TASK_TI_CPU 24
 
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
 #endif

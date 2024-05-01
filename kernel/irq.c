@@ -41,6 +41,8 @@ void do_irq_software(struct pt_regs * regs) {
 }
 
 void do_irq_timer(struct pt_regs * regs) {
+    uint64_t stime_value = csr_read(0x0C01) + LATCH;
+    sbi_set_timer(stime_value);
     do_timer(regs);
 }
 
@@ -66,11 +68,15 @@ void irq_external_init(void) {
     int cpu = smp_processor_id();
     // 获取第一个中断使能寄存器的位置
     uint32_t * p = (uint32_t*)PLIC_SENABLE(cpu, 0);
+
     // 清除可能的外部中断使能
-    for (int i = 0; i < (PLIC_SOURCE_NR / 32 + 1); i++) {
-        *(p+i) = 0x0;
-    }
-    *(uint32_t*)PLIC_STHRESHOLD(cpu) = 0;
+    // qemu上会有一些BUG, 因为QEMU的M态和S态使能混在一起来
+    // for (int i = 0; i < (PLIC_SOURCE_NR / 32 + 1); i++) {
+    //     *(p+i) = 0x0;
+    // }
+    //
+    // *(uint32_t*)PLIC_STHRESHOLD(cpu) = 0;
+
     csr_set(sie, RV_IRQ_EXT);
 }
 

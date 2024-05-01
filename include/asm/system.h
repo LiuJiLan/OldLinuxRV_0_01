@@ -150,4 +150,6 @@
 			      : "memory");			\
 })
 
+#define barrier() __sync_synchronize()
+
 #endif

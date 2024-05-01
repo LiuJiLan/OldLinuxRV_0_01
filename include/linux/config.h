@@ -41,15 +41,15 @@
 
 
 // for QEMU
-#define PLIC_SOURCE_NR 54
-#define PLIC_BASE_PA 0x0c000000UL
-#define PLIC_BASE    P2V_WO(PLIC_BASE_PA)
-#define PLIC_PRIORITY(id) (PLIC_BASE + (id) * 4)
-#define PLIC_PENDING(id) (PLIC_BASE + 0x1000 + ((id) / 32) * 4)
-#define PLIC_SENABLE(hart, id) (PLIC_BASE + 0x2080 + (hart) * 0x100 + ((id) / 32) * 4)
-#define PLIC_STHRESHOLD(hart) (PLIC_BASE + 0x201000 + (hart) * 0x2000)
-#define PLIC_SCLAIM(hart) (PLIC_BASE + 0x201004 + (hart) * 0x2000)
-#define PLIC_SCOMPLETE(hart) (PLIC_BASE + 0x201004 + (hart) * 0x2000)
+#define PLIC_SOURCE_NR          54
+#define PLIC_BASE_PA            0x0c000000UL
+#define PLIC_BASE               P2V_WO(PLIC_BASE_PA)
+#define PLIC_PRIORITY(id)       (PLIC_BASE + (id) * 4)
+#define PLIC_PENDING(id)        (PLIC_BASE + 0x1000 + ((id) / 32) * 4)
+#define PLIC_SENABLE(hart, id)  (PLIC_BASE + 0x2080 + (hart) * 0x100 + ((id) / 32) * 4)
+#define PLIC_STHRESHOLD(hart)   (PLIC_BASE + 0x200000 + (hart) * 0x2000)
+#define PLIC_SCLAIM(hart)       (PLIC_BASE + 0x201004 + (hart) * 0x2000)
+#define PLIC_SCOMPLETE(hart)    (PLIC_BASE + 0x201004 + (hart) * 0x2000)
 
 
 // for VF2

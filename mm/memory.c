@@ -5,6 +5,7 @@
 #include <asm/ptrace.h>
 #include <asm/system.h>
 #include <string.h>
+#include <asm/asm.h>
 
 #define PMD_SIZE     (PAGE_SIZE << 9)
 
@@ -57,6 +58,13 @@ void free_page(unsigned long addr) {
     panic("trying to free free page");
 }
 
+// 接收页表的虚拟地址
+void load_root_page_table(ssize_t satp_mode, pte_t * root_page_table) {
+    uint64 satp = SATP_MODE_39 | V2P(swapper_pg_dir) >> PGSHIFT;
+    csr_write(satp, satp);
+    local_flush_tlb_all();
+}
+
 int map_page(pte_t * page_table, size_t va, size_t pa, int perm, int top_level, int leaf_level);
 
 // init swapper_pg_dir with direct mapping
@@ -64,7 +72,6 @@ int map_page(pte_t * page_table, size_t va, size_t pa, int perm, int top_level, 
 void paging_init(void) {
     uint64 ram_start = PA_KERNEL;
     uint64 ram_end = RAM_START + RAM_SIZE;
-    uint64 satp = 0;
     int perm = PTE_X | PTE_W | PTE_R | PTE_V;
 
 //    if (0 != mappages(swapper_pg_dir, P2V(ram_start), ram_end - ram_start, ram_start, perm)) {
@@ -93,9 +100,7 @@ void paging_init(void) {
         ram_start += PAGE_SIZE;
     }
 
-    satp = SATP_MODE_39 | V2P(swapper_pg_dir) >> PGSHIFT;
-    csr_write(satp, satp);
-    local_flush_tlb_all();
+    load_root_page_table(SATP_MODE_39, swapper_pg_dir);
 }
 
 // int device_map_page(...) {
@@ -233,6 +238,6 @@ int map_page(pte_t * page_table, size_t va, size_t pa, int perm, int top_level, 
 
 // 如果成功, 返回正数
 // 如果出错, 返回负数, 其绝对值是成功映射长度
-size_t unmap_page_range(pte_t * page_table, size_t va, size_t pa, size_t size, int perm) {
-    return 0;
-}
+//size_t unmap_page_range(pte_t * page_table, size_t va, size_t pa, size_t size, int perm) {
+//    return 0;
+//}

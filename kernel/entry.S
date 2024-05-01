@@ -178,10 +178,59 @@ ret_from_exception:
 // fork后新进程开始执行的地方
 // 暂时仅支持用户进程/线程
 ret_from_fork:
-	// call schedule_tail
+    // schedule_tail紧接在switch_to后
+    // 参数是switch_to放在a0里的prev上一个进程
+	call schedule_tail
 	move a0, sp /* pt_regs */
 	la ra, ret_from_exception
 	// tail syscall_exit_to_user_mode
+	ret
+
+// 4 bytes 对齐
+.align 2
+.global __switch_to
+// a0: previous task_struct
+// a1: next task_struct
+// a0在整个过程中没有改变, 所以又相当于返回了a0作为prev
+__switch_to:
+	/* Save context into prev->thread */
+	la    a4, OFFSET_TASK_THREAD
+	ld    a4, 0(a4)
+	add   a3, a0, a4
+	add   a4, a1, a4
+	REG_S ra,  THREAD_RA(a3)
+	REG_S sp,  THREAD_SP(a3)
+	REG_S s0,  THREAD_S0(a3)
+	REG_S s1,  THREAD_S1(a3)
+	REG_S s2,  THREAD_S2(a3)
+	REG_S s3,  THREAD_S3(a3)
+	REG_S s4,  THREAD_S4(a3)
+	REG_S s5,  THREAD_S5(a3)
+	REG_S s6,  THREAD_S6(a3)
+	REG_S s7,  THREAD_S7(a3)
+	REG_S s8,  THREAD_S8(a3)
+	REG_S s9,  THREAD_S9(a3)
+	REG_S s10, THREAD_S10(a3)
+	REG_S s11, THREAD_S11(a3)
+
+	/* Restore context from next->thread */
+	REG_L ra,  THREAD_RA(a4)
+	REG_L sp,  THREAD_SP(a4)
+	REG_L s0,  THREAD_S0(a4)
+	REG_L s1,  THREAD_S1(a4)
+	REG_L s2,  THREAD_S2(a4)
+	REG_L s3,  THREAD_S3(a4)
+	REG_L s4,  THREAD_S4(a4)
+	REG_L s5,  THREAD_S5(a4)
+	REG_L s6,  THREAD_S6(a4)
+	REG_L s7,  THREAD_S7(a4)
+	REG_L s8,  THREAD_S8(a4)
+	REG_L s9,  THREAD_S9(a4)
+	REG_L s10, THREAD_S10(a4)
+	REG_L s11, THREAD_S11(a4)
+	/* The offset of thread_info in task_struct is zero. */
+	move tp, a1
+	ret
 
 
 .data

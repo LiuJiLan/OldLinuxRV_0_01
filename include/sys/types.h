@@ -43,5 +43,18 @@ typedef long                ssize_t;
 #define PGROUNDUP(sz)       (((sz)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a)      (((a)) & ~(PGSIZE-1))
 
+//######## Linux 0.01 types ########
+typedef int pid_t;
+typedef unsigned short uid_t;
+typedef unsigned char gid_t;
+typedef unsigned short dev_t;
+typedef unsigned short ino_t;
+typedef unsigned short mode_t;
+typedef unsigned short umode_t;
+typedef unsigned char nlink_t;
+typedef int daddr_t;
+typedef long off_t;
+typedef unsigned char u_char;
+typedef unsigned short ushort;
 
 #endif

@@ -47,5 +47,6 @@ static inline void local_flush_tlb_page(unsigned long addr)
 // ##################################
 
 extern pte_t swapper_pg_dir[];
+void load_root_page_table(ssize_t satp_mode, pte_t * root_page_table);
 
 #endif

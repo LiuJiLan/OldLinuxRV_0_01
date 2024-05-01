@@ -1,7 +1,9 @@
 #include <linux/kernel.h>
 #include <asm/sbi.h>
+#include <linux/sched.h>
 
 unsigned long boot_cpu_hartid;
+unsigned long OFFSET_TASK_THREAD;
 
 static inline void ebreak() {
     asm volatile("ebreak");
@@ -13,9 +15,17 @@ extern void irq_init(void);
 int sbi_printf(const char *fmt, ...);
 
 void start_kernel(void){
+    // 暂时没什么好办法, 这个偏移值不太能硬编码
+    OFFSET_TASK_THREAD = offsetof(struct task_struct, thread);
+
     paging_init();
     trap_init();
     irq_init();
+    // tty_init();
+    // sched_init();
+    // buffer_init();
+    // hd_init();
+    // move_to_user_mode();
     sbi_printf("We are here at %ld\n", boot_cpu_hartid);
     ebreak();
 

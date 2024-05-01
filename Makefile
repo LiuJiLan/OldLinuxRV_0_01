@@ -130,4 +130,5 @@ debug: tools/kernel.elf
 ### Dependencies:
 init/main.o: init/main.c include/linux/kernel.h include/stdarg.h \
  include/asm/sbi.h include/sys/types.h include/asm/asm.h \
- include/asm/asm_offsets.h
+ include/asm/asm_offsets.h include/linux/sched.h include/asm/ptrace.h \
+ include/asm/system.h include/linux/config.h include/linux/mm.h

@@ -54,7 +54,7 @@ dep:
 irq.s irq.o: irq.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h \
- ../include/linux/sched.h ../include/linux/sys.h \
+ ../include/linux/sched.h ../include/linux/mm.h ../include/linux/sys.h \
  ../include/linux/kernel.h ../include/stdarg.h
 panic.s panic.o: panic.c ../include/linux/kernel.h ../include/stdarg.h
 printk.s printk.o: printk.c ../include/stdarg.h ../include/linux/kernel.h
@@ -62,15 +62,17 @@ sbi.s sbi.o: sbi.c ../include/asm/sbi.h ../include/sys/types.h \
  ../include/asm/asm.h ../include/asm/asm_offsets.h
 sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
- ../include/linux/config.h
+ ../include/asm/system.h ../include/linux/config.h ../include/linux/mm.h \
+ ../include/linux/trap.h ../include/signal.h
 system_call.s system_call.o: system_call.c ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
- ../include/linux/trap.h ../include/asm/system.h \
- ../include/linux/config.h ../include/linux/sched.h \
+ ../include/asm/system.h ../include/linux/trap.h \
+ ../include/linux/config.h ../include/linux/sched.h ../include/linux/mm.h \
  ../include/linux/sys.h
 traps.s traps.o: traps.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h \
- ../include/linux/sched.h ../include/linux/kernel.h ../include/stdarg.h
+ ../include/linux/sched.h ../include/linux/mm.h ../include/linux/kernel.h \
+ ../include/stdarg.h
 vsprintf.s vsprintf.o: vsprintf.c ../include/stdarg.h ../include/string.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h
