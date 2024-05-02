@@ -4,13 +4,13 @@
 #include <linux/sched.h>
 
 //extern int sys_setup(struct pt_regs *);
-//extern int sys_exit(struct pt_regs *);
-//extern int sys_fork(struct pt_regs *);
+extern int sys_exit(struct pt_regs *);
+extern int sys_fork(struct pt_regs *);
 //extern int sys_read(struct pt_regs *);
 //extern int sys_write(struct pt_regs *);
 //extern int sys_open(struct pt_regs *);
 //extern int sys_close(struct pt_regs *);
-//extern int sys_waitpid(struct pt_regs *);
+extern int sys_waitpid(struct pt_regs *);
 //extern int sys_creat(struct pt_regs *);
 //extern int sys_link(struct pt_regs *);
 //extern int sys_unlink(struct pt_regs *);

@@ -121,6 +121,7 @@ static inline struct task_struct * get_current(void) {
     return riscv_current_is_tp;
 }
 #define current get_current()
+#define current_pt_regs() task_pt_regs(current)
 extern long volatile jiffies;
 extern long startup_time;
 

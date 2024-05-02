@@ -38,7 +38,7 @@ void do_signal(struct pt_regs * regs) {
                 if (nr + 1 == SIGCHLD) {
                     continue;
                 } else {
-                    // do_exit(nr + 1)
+                    do_exit(nr + 1);
                 }
                 // signal中的位数和自定义函数的下标是对应的
                 // 但和数字的编号差了1

@@ -31,18 +31,5 @@ void system_call(struct pt_regs * regs) {
     local_irq_disable(); // 关中断
 }
 
-int sys_fork(struct pt_regs * regs) {
-    return 0;
-}
 
-//call _find_empty_process
-//testl %eax,%eax
-//        js 1f
-//push %gs
-//        pushl %esi
-//        pushl %edi
-//        pushl %ebp
-//        pushl %eax
-//        call _copy_process
-//        addl $20,%esp
-//1:	ret
+

@@ -39,6 +39,7 @@ dep:
 ### Dependencies:
 memory.o: memory.c ../include/sys/types.h ../include/asm/asm.h \
  ../include/asm/asm_offsets.h ../include/linux/mm.h \
- ../include/linux/config.h ../include/linux/kernel.h ../include/stdarg.h \
- ../include/asm/ptrace.h ../include/asm/system.h ../include/string.h \
- ../include/linux/sched.h ../include/errno.h
+ ../include/linux/config.h ../include/linux/sched.h \
+ ../include/asm/ptrace.h ../include/asm/system.h \
+ ../include/linux/kernel.h ../include/stdarg.h ../include/string.h \
+ ../include/errno.h ../include/signal.h

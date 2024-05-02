@@ -51,4 +51,12 @@ void load_root_page_table(ssize_t satp_mode, pte_t * root_page_table);
 
 #define invalidate() local_flush_tlb_all()
 
+extern unsigned long get_free_page(void);
+extern void free_page(unsigned long addr);
+unsigned long get_two_free_pages(void);
+void free_two_pages(unsigned long addr);
+
+#include <linux/sched.h>
+void free_page_tables(struct task_struct * tsk);
+
 #endif

@@ -8,6 +8,7 @@
 #include <asm/asm.h>
 #include <linux/sched.h>
 #include <errno.h>
+#include <signal.h>
 
 #define PMD_SIZE     (PAGE_SIZE << 9)
 
@@ -51,6 +52,37 @@ void free_page(unsigned long addr) {
         panic("trying to free nonexistent page");
     if (mem_map[MAP_NR(addr)]--) return;
     mem_map[MAP_NR(addr)] = 0;
+    panic("trying to free free page");
+}
+
+
+// 转为进程描述符用的, 暂时这样吧
+unsigned long get_two_free_pages(void) {
+    // 扫描mem_map查找空闲页
+    for (int i = PAGING_PAGES-2; i >= 0; i--) {
+        if (mem_map[i] == 0 && mem_map[i + 1] == 0) {
+            mem_map[i] = 1;  // 标记为已使用
+            mem_map[i + 1] = 1;  // 标记为已使用
+            unsigned long page_addr = P2V(LOW_MEM) + i * PAGE_SIZE;
+            // 初始化页面内容为0
+            memset((void *) page_addr, 0, PAGE_SIZE * 2);
+            return page_addr;
+        }
+    }
+    return 0;  // 如果没有空闲页面，返回0
+}
+
+// 转为进程描述符用的, 暂时这样
+void free_two_pages(unsigned long addr) {
+    int p1, p2;
+    if (addr < P2V(LOW_MEM)) return;
+    if (addr > P2V(HIGH_MEMORY))
+        panic("trying to free nonexistent page");
+    p1 = mem_map[MAP_NR(addr)]--;
+    p2 = mem_map[MAP_NR(addr)+1]--;
+    if (p1 && p2) return;
+    mem_map[MAP_NR(addr)] = 0;
+    mem_map[MAP_NR(addr)+1] = 0;
     panic("trying to free free page");
 }
 
@@ -317,11 +349,11 @@ void do_wp_page(unsigned long address, pte_t * table_entry) {
     }
 
     if (!(new_page=get_free_page())) {
-        //do_exit(SIGSEGV);
+        do_exit(SIGSEGV);
     }
     if (map_page(current->pgd, new_page, address, perm, 2, 0)) {
          // res == -1, 意味着失败
-         //do_exit(SIGSEGV);
+         do_exit(SIGSEGV);
     }
 
     //do_exit(SIGSEGV);是对当前进程来做的, 发生了就会不会往下面走了, 相当于return
@@ -337,7 +369,7 @@ void write_verify(unsigned long address) {
     if (address < PAGE_SIZE || address >= TASK_SIZE) {
         // 仅允许对用户空间做缺页操作, 至少暂时是
         printk("Write Verify on pid:%d at %p.\n", current->pid, address);
-        // do_exit(SIGSEGV);
+        do_exit(SIGSEGV);
     }
 
     pte_t * table_entry = get_pte(current->pgd, address);
@@ -358,7 +390,7 @@ void do_no_page(unsigned long address, pte_t * table_entry) {
             return;
         }
     }
-    // do_exit(SIGSEGV);
+    do_exit(SIGSEGV);
 }
 
 void do_page_fault(struct pt_regs *regs) {
@@ -366,7 +398,7 @@ void do_page_fault(struct pt_regs *regs) {
     if (badaddr < PAGE_SIZE || badaddr >= TASK_SIZE) {
         // 仅允许对用户空间做缺页操作, 至少暂时是
         printk("Page Fault on pid:%d at %p.\n", current->pid, regs->badaddr);
-        // do_exit(SIGSEGV);
+        do_exit(SIGSEGV);
     }
 
     pte_t * table_entry = get_pte(current->pgd, badaddr);

@@ -32,8 +32,9 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	keyboard.o rs_io.o hd.o sys.o exit.o serial.o \
 #	mktime.o
 
-OBJS  = sched.o system_call.o entry.o traps.o irq.o \
+OBJS  = sched.o system_call.o traps.o entry.o irq.o fork.o \
 		panic.o printk.o vsprintf.o signal.o \
+		sys.o exit.o \
 		sbi.o
 
 kernel.o: $(OBJS)
@@ -51,11 +52,16 @@ dep:
 	cp tmp_make Makefile
 
 ### Dependencies:
+exit.s exit.o: exit.c ../include/errno.h ../include/signal.h \
+ ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
+ ../include/asm/ptrace.h ../include/asm/system.h ../include/sys/wait.h \
+ ../include/linux/sched.h ../include/linux/config.h ../include/linux/mm.h \
+ ../include/linux/kernel.h ../include/stdarg.h ../include/string.h
 fork.s fork.o: fork.c ../include/errno.h ../include/linux/sched.h \
  ../include/asm/ptrace.h ../include/sys/types.h ../include/asm/asm.h \
  ../include/asm/asm_offsets.h ../include/asm/system.h \
  ../include/linux/config.h ../include/linux/mm.h \
- ../include/linux/kernel.h ../include/stdarg.h
+ ../include/linux/kernel.h ../include/stdarg.h ../include/string.h
 irq.s irq.o: irq.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h \
@@ -72,6 +78,11 @@ sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
 signal.s signal.o: signal.c ../include/signal.h ../include/sys/types.h \
  ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/ptrace.h ../include/asm/system.h ../include/linux/sched.h \
+ ../include/linux/config.h ../include/linux/mm.h \
+ ../include/linux/kernel.h ../include/stdarg.h
+sys.s sys.o: sys.c ../include/errno.h ../include/linux/sched.h \
+ ../include/asm/ptrace.h ../include/sys/types.h ../include/asm/asm.h \
+ ../include/asm/asm_offsets.h ../include/asm/system.h \
  ../include/linux/config.h ../include/linux/mm.h \
  ../include/linux/kernel.h ../include/stdarg.h
 system_call.s system_call.o: system_call.c ../include/asm/ptrace.h \

@@ -240,13 +240,13 @@ printf("%*.*s",10,3,p);
 
 
 
-# Log6 schedule和switch_to
+# Log 6 schedule和switch_to
 
 如参照论文做改进
 
 
 
-# Log7 do_timer路径和信号处理(仅内核)路径
+# Log 7 do_timer路径和信号处理(仅内核)路径
 
 ## do_timer路径
 
@@ -275,3 +275,9 @@ GPT说的:
 没做什么大的改动。
 
 同时完善了一下页表的接口。
+
+
+
+# Log 9 exit
+
+![exit流程.drawio](./asset/exit流程.drawio.png)

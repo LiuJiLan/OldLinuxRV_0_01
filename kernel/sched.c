@@ -40,10 +40,14 @@ struct task_struct * task[NR_TASKS] = {&(init_task_union.task), };
 // 之后考虑动态分配
 // long user_stack [PAGE_SIZE >> 2] ;
 
-
+// release原型在exit.c里
+extern void release(struct task_struct * p);
 void finish_task_switch(struct task_struct *prev) {
     long prev_state = prev->state;
     // 在这回收进程描述符的空间!!!
+    if (prev_state == TASK_DEAD) {
+        release(prev);
+    }
 }
 
 void schedule_tail(struct task_struct *prev) {
@@ -123,6 +127,58 @@ void schedule(void)
     }
     // switch_to(next);
     context_switch(current, next);
+}
+
+int sys_pause(void)
+{
+    current->state = TASK_INTERRUPTIBLE;
+    schedule();
+    return 0;
+}
+
+void sleep_on(struct task_struct **p)
+{
+    struct task_struct *tmp;
+
+    if (!p)
+        return;
+    if (current == init_task)
+        panic("task[0] trying to sleep");
+    tmp = *p;
+    *p = current;
+    current->state = TASK_UNINTERRUPTIBLE;
+    schedule();
+    if (tmp)
+        tmp->state = TASK_RUNNING;
+}
+
+void interruptible_sleep_on(struct task_struct **p)
+{
+    struct task_struct *tmp;
+
+    if (!p)
+        return;
+    if (current == init_task)
+        panic("task[0] trying to sleep");
+    tmp=*p;
+    *p=current;
+    repeat:	current->state = TASK_INTERRUPTIBLE;
+    schedule();
+    if (*p && *p != current) {
+        (**p).state = TASK_RUNNING; // 唤醒后面来的, 重新休眠自己
+        goto repeat;
+    }
+    *p=NULL;
+    if (tmp)
+        tmp->state = TASK_RUNNING;
+}
+
+void wake_up(struct task_struct **p)
+{
+    if (p && *p) {
+        (**p).state = TASK_RUNNING;
+        *p=NULL;
+    }
 }
 
 void do_timer(struct pt_regs * regs) {
