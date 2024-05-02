@@ -33,7 +33,7 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	mktime.o
 
 OBJS  = sched.o system_call.o entry.o traps.o irq.o \
-		panic.o printk.o vsprintf.o \
+		panic.o printk.o vsprintf.o signal.o \
 		sbi.o
 
 kernel.o: $(OBJS)
@@ -51,6 +51,11 @@ dep:
 	cp tmp_make Makefile
 
 ### Dependencies:
+fork.s fork.o: fork.c ../include/errno.h ../include/linux/sched.h \
+ ../include/asm/ptrace.h ../include/sys/types.h ../include/asm/asm.h \
+ ../include/asm/asm_offsets.h ../include/asm/system.h \
+ ../include/linux/config.h ../include/linux/mm.h \
+ ../include/linux/kernel.h ../include/stdarg.h
 irq.s irq.o: irq.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h \
@@ -64,11 +69,16 @@ sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h ../include/linux/mm.h \
  ../include/linux/trap.h ../include/signal.h
+signal.s signal.o: signal.c ../include/signal.h ../include/sys/types.h \
+ ../include/asm/asm.h ../include/asm/asm_offsets.h \
+ ../include/asm/ptrace.h ../include/asm/system.h ../include/linux/sched.h \
+ ../include/linux/config.h ../include/linux/mm.h \
+ ../include/linux/kernel.h ../include/stdarg.h
 system_call.s system_call.o: system_call.c ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/trap.h \
  ../include/linux/config.h ../include/linux/sched.h ../include/linux/mm.h \
- ../include/linux/sys.h
+ ../include/linux/sys.h ../include/signal.h
 traps.s traps.o: traps.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h \

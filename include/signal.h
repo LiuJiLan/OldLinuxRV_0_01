@@ -2,6 +2,7 @@
 #define _SIGNAL_H
 
 #include <sys/types.h>
+#include <asm/ptrace.h>
 
 typedef int sig_atomic_t;
 typedef unsigned int sigset_t;		/* 32 bits */
@@ -61,5 +62,7 @@ int kill(pid_t pid, int sig);
 //int sigprocmask(int how, sigset_t *set, sigset_t *oldset);
 //int sigsuspend(sigset_t *sigmask);
 //int sigaction(int sig, struct sigaction *act, struct sigaction *oldact);
+
+void do_signal(struct pt_regs * regs);
 
 #endif /* _SIGNAL_H */

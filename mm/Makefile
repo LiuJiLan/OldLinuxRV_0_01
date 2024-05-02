@@ -40,4 +40,5 @@ dep:
 memory.o: memory.c ../include/sys/types.h ../include/asm/asm.h \
  ../include/asm/asm_offsets.h ../include/linux/mm.h \
  ../include/linux/config.h ../include/linux/kernel.h ../include/stdarg.h \
- ../include/asm/ptrace.h ../include/asm/system.h ../include/string.h
+ ../include/asm/ptrace.h ../include/asm/system.h ../include/string.h \
+ ../include/linux/sched.h ../include/errno.h

@@ -25,6 +25,9 @@ void start_kernel(void){
     // sched_init();
     // buffer_init();
     // hd_init();
+
+    // sti();
+    // 我们不需要在内核里开中断, 因为我们可以用RISC-V的xstatus来一次性开启中断
     // move_to_user_mode();
     sbi_printf("We are here at %ld\n", boot_cpu_hartid);
     ebreak();

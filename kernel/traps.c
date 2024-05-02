@@ -42,14 +42,16 @@ void do_insn_illegal(struct pt_regs * regs) {
     regs->epc += 4;
 }
 
+static int show_reg[] = {0, 1, 2, 4, 32, 33, 34};
 static const char * break_from_user[2] = {"User", "Kernel"};
 static const char * pt_regs_name[36];
 void do_break(struct pt_regs * regs) {
 
     printk("Breakpoint From %s Mode.\n", break_from_user[user_mode(regs)]);
     printk("Register in pt_regs:\n");
-    for (int i = 0; i < 36; i++) {
-        printk("%s:\t\t0x%p\n", pt_regs_name[i], ((size_t*)regs)[i]);
+    int i, n = (sizeof(show_reg) / sizeof(int));
+    for (i = 0; i < n; i++) {
+        printk("%s:\t\t0x%p\n", pt_regs_name[show_reg[i]], ((size_t*)regs)[show_reg[i]]);
     }
     regs->epc += 4;
 }
@@ -57,8 +59,9 @@ void do_break(struct pt_regs * regs) {
 extern int sbi_printf(const char *fmt, ...);
 void do_early_trap(struct pt_regs * regs) {
     sbi_printf("Early Trap caused by %d\nRegister in pt_regs:\n", regs->cause);
-    for (int i = 0; i < 36; i++) {
-        sbi_printf("%s:\t\t0x%p\n", pt_regs_name[i], ((size_t*)regs)[i]);
+    int i, n = (sizeof(show_reg) / sizeof(int));
+    for (i = 0; i < n; i++) {
+        sbi_printf("%s:\t\t0x%p\n", pt_regs_name[show_reg[i]], ((size_t*)regs)[show_reg[i]]);
     }
     print_debug("do_early_trap");
     regs->epc += 4;
@@ -104,10 +107,10 @@ void trap_init(void) {
 //    set_excp_vect(9,&do_impossible_ecall);
 //    set_excp_vect(10,&do_reserved);
 //    set_excp_vect(11,&do_impossible_ecall);
-//    set_excp_vect(12,&do_page_fault);
-//    set_excp_vect(13,&do_page_fault);
+    set_excp_vect(12,&do_page_fault);
+    set_excp_vect(13,&do_page_fault);
 //    set_excp_vect(14,&do_reserved);
-//    set_excp_vect(15,&do_page_fault);
+    set_excp_vect(15,&do_page_fault);
 }
 
 static const char * pt_regs_name[36] = {

@@ -6,6 +6,8 @@
 #include <asm/system.h>
 #include <string.h>
 #include <asm/asm.h>
+#include <linux/sched.h>
+#include <errno.h>
 
 #define PMD_SIZE     (PAGE_SIZE << 9)
 
@@ -18,18 +20,14 @@ uptr_t dtb_va = 0;
 
 #define PAGING_MEMORY (HIGH_MEMORY - LOW_MEM)
 #define PAGING_PAGES (PAGING_MEMORY/4096)
-#define MAP_NR(addr) (((addr)-P2V(LOW_MEM))>>12)
+#define MAP_NR(addr) (((unsigned long)(addr)-(unsigned long)P2V(LOW_MEM))>>12)
 
 // 4096 bytes -> 2 bytes
 // 1MiB -> 512 bytes = 0.5 KiB
 // 1GiB -> 512KiB = 0.5 MiB
 static unsigned short mem_map[PAGING_PAGES] = {0,};
 
-pte_t *walk(pagetable_t pagetable, uint64 va, int alloc);
-uint64 walkaddr(pagetable_t pagetable, uint64 va);
-int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm);
-void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free);
-void freewalk(pagetable_t pagetable, int high_level);
+
 
 // 返回内核虚拟地址
 unsigned long get_free_page(void) {
@@ -48,19 +46,172 @@ unsigned long get_free_page(void) {
 
 // 参数为虚拟地址!!! 和原版不一样!!!
 void free_page(unsigned long addr) {
-    if (addr < LOW_MEM + VA_KERNEL) return;
-    if (addr > HIGH_MEMORY + VA_KERNEL)
+    if (addr < P2V(LOW_MEM)) return;
+    if (addr > P2V(HIGH_MEMORY))
         panic("trying to free nonexistent page");
-    addr -= (LOW_MEM + VA_KERNEL);
-    addr >>= 12;
-    if (mem_map[addr]--) return;
-    mem_map[addr] = 0;
+    if (mem_map[MAP_NR(addr)]--) return;
+    mem_map[MAP_NR(addr)] = 0;
     panic("trying to free free page");
 }
 
+// 剩下页表相关的接口来自Linux 0.97.6
+
+// 别问为什么命名那么离谱, blame Linux!!!
+
+// !!!仅!!! 用于清除sv39的root页表中的表项
+static void free_one_table(pte_t * pte) {
+    // 注意!!! 缺乏异常处理和保护, 使用的时候小心
+    if (*pte & PTE_V) {
+        // 缺乏对巨页的异常处理
+        // 缺乏对sv39以外的支持
+
+        pte_t * l1_pte = PTE2VA(*pte);
+        for (int i = 0; i < NPTE; i++, l1_pte++) {
+            if (*l1_pte & PTE_V) {
+                pte_t * l0_pte = PTE2VA(*l1_pte);
+                for (int j = 0; j < NPTE; j++, l0_pte++) {
+                    if (*l0_pte & PTE_V) {
+                        free_page(PTE2VA(*l0_pte));
+                    }
+                }
+                free_page(PTE2VA(*l1_pte));
+            }
+        }
+        free_page(PTE2VA(*pte));
+    }
+}
+
+/*
+ * This function clears all user-level page tables of a process - this
+ * is needed by execve(), so that old pages aren't in the way. Note that
+ * unlike 'free_page_tables()', this function still leaves a valid
+ * page-table-tree in memory: it just removes the user pages. The two
+ * functions are similar, but there is a fundamental difference.
+ */
+void clear_page_tables(struct task_struct * tsk) {
+    int i;
+    pte_t * page_dir;
+
+    if (!tsk)
+        return;
+    if (tsk == task[0])
+        panic("task[0] (swapper) doesn't support exec() yet\n");
+    page_dir = (pte_t *) tsk->pgd;
+    if (page_dir == swapper_pg_dir) {
+        printk("Trying to clear kernel page-directory: not good\n");
+        return;
+    }
+    // 在内核里操作, 不会有影响
+    for (i = 0 ; i < NPTE / 2 ; i++,page_dir++)
+        free_one_table(page_dir);
+    invalidate();
+    return;
+}
+
+/*
+ * This function frees up all page tables of a process when it exits.
+ */
+void free_page_tables(struct task_struct * tsk) {
+    int i;
+    pte_t * page_dir;
+
+    if (!tsk)
+        return;
+    if (tsk == FIRST_TASK) {
+        printk("task[0] (swapper) killed: unable to recover\n");
+        panic("Trying to free up swapper memory space");
+    }
+    page_dir = (pte_t *) tsk->pgd;
+    if (page_dir == swapper_pg_dir) {
+        printk("Trying to free kernel page-directory: not good\n");
+        return;
+    }
+    if (tsk == current)
+       load_root_page_table(SATP_MODE_39, swapper_pg_dir);
+
+    pte_t * pte = page_dir;
+    // 几乎和clear_page_tables, 而不是像0.97.6中那样有768和1024的区别
+    // 高端内存直接引用就行了, 反正暂时没有实现vma
+    for (i = 0 ; i < NPTE / 2 ; i++,pte++)
+        free_one_table(pte);
+    free_page(page_dir);
+    invalidate();
+}
+
+// copy_page_tables的辅助函数
+// !!!仅!!! 用于设置sv39的root页表中的表项的权限为用户态仅读, 并提高引用计数
+// 没有对内核态的保护, 小心使用!!!
+static void reference_count_one_table(pte_t * pte) {
+    // 注意!!! 缺乏异常处理和保护, 使用的时候小心
+    int perm = PTE_U | PTE_X | PTE_R | PTE_V;
+    if (*pte & PTE_V) {
+        // 缺乏对巨页的异常处理
+        // 缺乏对sv39以外的支持
+
+        // 可能被调用free_page都要提升引用计数
+
+        pte_t * l1_pte = PTE2VA(*pte);
+        // 相当于mem_map[MAP_NR(PTE2VA(*pte))]++;
+        mem_map[MAP_NR(l1_pte)]++;
+        for (int i = 0; i < NPTE; i++, l1_pte++) {
+            if (*l1_pte & PTE_V) {
+                pte_t * l0_pte = PTE2VA(*l1_pte);
+                // 相当于mem_map[MAP_NR(PTE2VA(*l1_pte))]++;
+                mem_map[MAP_NR(l0_pte)]++;
+                for (int j = 0; j < NPTE; j++, l0_pte++) {
+                    if (*l0_pte & PTE_V) {
+                        *l0_pte &= ~0x3FFUL; // 清除flags
+                        *l0_pte |= perm;
+                        mem_map[MAP_NR(PTE2VA(*l0_pte))]++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
+ * copy_page_tables() just copies the whole process memory range:
+ * note the special handling of RESERVED (ie kernel) pages, which
+ * means that they are always shared by all processes.
+ */
+// copy current->pgd to tsk->pgd
+// 用户态页表增加引用然后改为只读, 内核态直接引用就好了
+// 原版这里变量命名奇奇怪怪的
+int copy_page_tables(struct task_struct * tsk) {
+    int i;
+    pte_t * old_pg_dir;
+    pte_t * new_pg_dir;
+
+    old_pg_dir = current->pgd;
+    new_pg_dir = get_free_page();
+    if (!new_pg_dir)
+        return -ENOMEM;
+    tsk->pgd = new_pg_dir;
+
+    // 直接复制, 相当于引用了所有的子页表
+    memcpy(new_pg_dir, old_pg_dir, PAGE_SIZE);
+
+    pte_t * pte = old_pg_dir;
+    for (i = 0 ; i < NPTE / 2 ; i++, pte++) {
+        reference_count_one_table(pte);
+    }
+    invalidate();
+    return 0;
+}
+
+
+// 原来版本只能适应2级页表的异常处理,
+// 且仅支持内核和用户态的线性地址的起点都为0的情况
+// 且仅在change_ldt和do_no_page中被调用
+// 不如直接调用map_page
+// unsigned long put_page(unsigned long page,unsigned long address) {}
+
+// ####################################################################
+
 // 接收页表的虚拟地址
 void load_root_page_table(ssize_t satp_mode, pte_t * root_page_table) {
-    uint64 satp = SATP_MODE_39 | V2P(swapper_pg_dir) >> PGSHIFT;
+    uint64 satp = satp_mode | V2P(root_page_table) >> PGSHIFT;
     csr_write(satp, satp);
     local_flush_tlb_all();
 }
@@ -77,8 +228,11 @@ void paging_init(void) {
 //    if (0 != mappages(swapper_pg_dir, P2V(ram_start), ram_end - ram_start, ram_start, perm)) {
 //        panic("paging_init");
 //    }
+    // 在这里顺便把恒等映射给做了
+    // 顺便一说, swapper_pg_dir本来只能做参考页表的, 在里面做恒等其实只是为了不实现内核进程
     while (ram_start < ram_end) {
         map_page(swapper_pg_dir, P2V(ram_start), ram_start, perm, 2, 0);
+        map_page(swapper_pg_dir, ram_start, ram_start, PTE_U | perm, 2, 0);
         ram_start += PAGE_SIZE;
     }
 
@@ -102,10 +256,6 @@ void paging_init(void) {
 
     load_root_page_table(SATP_MODE_39, swapper_pg_dir);
 }
-
-// int device_map_page(...) {
-// }
-
 
 void setup_vm(uptr_t dtb_pa) {
     dtb_va = P2V(dtb_pa);
@@ -134,8 +284,113 @@ void setup_vm(uptr_t dtb_pa) {
     }
 }
 
+// #############页相关异常处理################
+
+// 返回对应的页表项的指针
+// 如果返回NULL说明中间或最终级缺少
+pte_t * get_pte(pte_t * page_table, size_t va) {
+    // 拿map_page改的, 懒得优化了
+    pte_t * current_table = page_table;
+
+    int index = -1;
+    for (int level = 2; level > 0; level--) {
+        index = PX(level, va);
+        if (current_table[index] & PTE_V == 0) {
+            return NULL;
+        }
+        current_table = PTE2VA(current_table[index]);
+    }
+
+    return &current_table[PX(0, va)];
+}
+
+void do_wp_page(unsigned long address, pte_t * table_entry) {
+    int perm = PTE_U | PTE_X | PTE_W | PTE_R | PTE_V;
+    unsigned long old_page,new_page;
+
+    old_page = PTE2VA(*table_entry);
+
+    // 仅有一个进程在引用, 直接解除写保护
+    if (old_page >= P2V(LOW_MEM) && mem_map[MAP_NR(old_page)]==1) {
+        *table_entry |= PTE_W;
+        return;
+    }
+
+    if (!(new_page=get_free_page())) {
+        //do_exit(SIGSEGV);
+    }
+    if (map_page(current->pgd, new_page, address, perm, 2, 0)) {
+         // res == -1, 意味着失败
+         //do_exit(SIGSEGV);
+    }
+
+    //do_exit(SIGSEGV);是对当前进程来做的, 发生了就会不会往下面走了, 相当于return
+
+    // 之前已经检查过了, 不用再检查
+    mem_map[MAP_NR(old_page)]--;
+    *table_entry |= PTE_W;
+    memcpy(new_page, address, PAGE_SIZE);
+}
+
+void write_verify(unsigned long address) {
+    address &= ~0xFFFUL;
+    if (address < PAGE_SIZE || address >= TASK_SIZE) {
+        // 仅允许对用户空间做缺页操作, 至少暂时是
+        printk("Write Verify on pid:%d at %p.\n", current->pid, address);
+        // do_exit(SIGSEGV);
+    }
+
+    pte_t * table_entry = get_pte(current->pgd, address);
+    // 如果页不存在, 直接返回, 后面由do_no_page来处理
+    if (table_entry != NULL && (*table_entry | PTE_W | PTE_V) == PTE_V) {
+        // 存在且不可写
+        do_wp_page(address, table_entry);
+    }
+    return;
+}
+
+void do_no_page(unsigned long address, pte_t * table_entry) {
+    int perm = PTE_U | PTE_X | PTE_W | PTE_R | PTE_V;
+    unsigned long tmp;
+    if (tmp=get_free_page()) {
+        if (!map_page(current->pgd, tmp, address, perm, 2, 0)) {
+            // res != -1, 意味着成功
+            return;
+        }
+    }
+    // do_exit(SIGSEGV);
+}
+
 void do_page_fault(struct pt_regs *regs) {
-    regs->epc += 4;
+    ssize_t badaddr = regs->badaddr & ~0xFFFUL;
+    if (badaddr < PAGE_SIZE || badaddr >= TASK_SIZE) {
+        // 仅允许对用户空间做缺页操作, 至少暂时是
+        printk("Page Fault on pid:%d at %p.\n", current->pid, regs->badaddr);
+        // do_exit(SIGSEGV);
+    }
+
+    pte_t * table_entry = get_pte(current->pgd, badaddr);
+    if (table_entry != NULL && (*table_entry | PTE_V)) {
+        // 中间过程不缺页, 且当前页面存在, 说明是写时复制
+//        if (*table_entry | PTE_U) {
+//            do_wp_page(badaddr, table_entry);
+//        } else {
+//            // 是内核态页表项不许COW
+//            // 现在这个实现下面有可能的就是外设了
+//            printk("Kernel COW at %p.\n", regs->badaddr);
+//            panic("No COW in Kernel!");
+//        }
+        do_wp_page(badaddr, table_entry);
+    } else {
+        // 否则则是缺页
+//        if (!user_mode(regs)) {
+//            // 不实现vma的情况下, 内核态的页已经全部被回收
+//            // 现在这个实现下面有可能的就是外设了
+//            printk("Kernel No Page Fault at %p.\n", regs->badaddr);
+//            panic("No Page in Kernel!");
+//        }
+        do_no_page(badaddr, table_entry);
+    }
 }
 
 __attribute__((__aligned__(PGSIZE)))
@@ -235,9 +490,3 @@ int map_page(pte_t * page_table, size_t va, size_t pa, int perm, int top_level, 
     current_table[PX(level, va)] = PA2PTE(pa) | perm;
     return 0;
 }
-
-// 如果成功, 返回正数
-// 如果出错, 返回负数, 其绝对值是成功映射长度
-//size_t unmap_page_range(pte_t * page_table, size_t va, size_t pa, size_t size, int perm) {
-//    return 0;
-//}

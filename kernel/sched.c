@@ -46,6 +46,11 @@ void finish_task_switch(struct task_struct *prev) {
     // 在这回收进程描述符的空间!!!
 }
 
+void schedule_tail(struct task_struct *prev) {
+    // 很短, 但是为了日后扩展, 留着
+    finish_task_switch(prev);
+}
+
 // 替代switch_to, 相较Linux的有简化
 // switch_to包括页表和上下文都在TSS中
 // 而TSS的交换是原子的, 所以这两个步骤前后关开中断
@@ -134,7 +139,10 @@ void do_timer(struct pt_regs * regs) {
     if (!user_mode(regs)) {
         return;
     }
-    // schedule();
+    schedule();
+
+    // 原汇编后续处理
+    do_signal(regs);
 }
 
 

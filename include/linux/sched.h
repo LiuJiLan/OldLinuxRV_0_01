@@ -5,6 +5,11 @@
 #define HZ      100
 #define LATCH   (TIMEBASE_FREQUENCY / HZ)
 
+// 从Linux 0.12中引入的宏
+// 暂时设为64MiB
+#define TASK_SIZE	0x04000000
+
+
 #define FIRST_TASK task[0]
 #define LAST_TASK task[NR_TASKS-1]
 
@@ -74,6 +79,8 @@ struct task_struct {
     long                        priority;
 
     long                        signal;
+    // Well, 我知道函数的类型有点问题, 但是先这样算了吧
+    // 反正不支持用户态的信号, 之后再改吧
     fn_ptr                      sig_restorer;
     fn_ptr                      sig_fn[32];
 

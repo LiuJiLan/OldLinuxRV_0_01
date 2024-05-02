@@ -40,9 +40,15 @@ void do_irq_software(struct pt_regs * regs) {
     // 仅清除中断即可
 }
 
+extern long volatile jiffies;
 void do_irq_timer(struct pt_regs * regs) {
+    // 这句在Linux 0.01的汇编里面
+    jiffies += 1;
+
+    // 清除中断
     uint64_t stime_value = csr_read(0x0C01) + LATCH;
     sbi_set_timer(stime_value);
+
     do_timer(regs);
 }
 

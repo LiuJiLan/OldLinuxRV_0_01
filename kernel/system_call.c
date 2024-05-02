@@ -3,6 +3,7 @@
 #include <asm/ptrace.h>
 #include <linux/trap.h>
 #include <linux/sys.h>
+#include <signal.h>
 
 // 为了解决一些神奇的报错
 fn_ptr sys_call_table[] = {sys_fork};
@@ -24,11 +25,8 @@ void system_call(struct pt_regs * regs) {
     }
     regs->a0 = sys_call_table[syscall](regs);
 
-
-
-    // 后续处理
-
-    // do_signal(struct pt_regs * regs)
+    // 原汇编后续处理
+    do_signal(regs);
 
     local_irq_disable(); // 关中断
 }

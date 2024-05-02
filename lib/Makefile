@@ -27,7 +27,7 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 %.o : %.S	# 不在使用.s, 全部使用能预处理的.S
 	@${CC} ${CFLAGS} -c -o $*.o $<
 
-OBJS  = string.o
+OBJS  = string.o errno.o
 
 #OBJS  = ctype.o _exit.o open.o close.o errno.o write.o dup.o setsid.o \
 #	execve.o wait.o string.o
