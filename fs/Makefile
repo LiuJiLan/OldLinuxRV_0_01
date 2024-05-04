@@ -19,9 +19,11 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 %.o : %.S	# 不在使用.s, 全部使用能预处理的.S
 	@${CC} ${CFLAGS} -c -o $*.o $<
 
-OBJS=	open.o read_write.o inode.o file_table.o buffer.o super.o \
-	block_dev.o char_dev.o file_dev.o stat.o exec.o pipe.o namei.o \
-	bitmap.o fcntl.o ioctl.o tty_ioctl.o truncate.o
+#OBJS=	open.o read_write.o inode.o file_table.o buffer.o super.o \
+#	block_dev.o char_dev.o file_dev.o stat.o exec.o pipe.o namei.o \
+#	bitmap.o fcntl.o ioctl.o tty_ioctl.o truncate.o
+
+OBJS=	file_table.o buffer.o
 
 fs.o: $(OBJS)
 	$(LD) -r -o fs.o $(OBJS)

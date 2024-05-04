@@ -1,6 +1,7 @@
 #include <linux/kernel.h>
 #include <asm/sbi.h>
 #include <linux/sched.h>
+#include <linux/fs.h>
 
 unsigned long boot_cpu_hartid;
 unsigned long OFFSET_TASK_THREAD;
@@ -22,9 +23,10 @@ void start_kernel(void){
     trap_init();
     irq_init();
     // tty_init();
-    // sched_init();
-    // buffer_init();
-    // hd_init();
+    sched_init();
+    buffer_init();
+    hd_init();
+
 
     // sti();
     // 我们不需要在内核里开中断, 因为我们可以用RISC-V的xstatus来一次性开启中断

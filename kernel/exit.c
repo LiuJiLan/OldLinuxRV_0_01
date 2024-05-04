@@ -64,6 +64,11 @@ int do_exit(long code)
 {
     int i;
 
+    // for debug
+    if (current == FIRST_TASK) {
+        panic("Try to do_exit on TASK 0.");
+    }
+
     free_page_tables(current);
     for (i=0 ; i<NR_TASKS ; i++)
         if (task[i] && task[i]->father == current->pid)

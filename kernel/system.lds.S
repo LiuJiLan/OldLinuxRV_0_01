@@ -14,29 +14,34 @@ SECTIONS
 
     .text :AT(PHYSICAL_BASE) {
         boot/head.o(.text)
-        *(.text)
+        *(.text .text.*)
         . = ALIGN(4096);
         PROVIDE(etext = .);
     }
 
     .rodata : {
         . = ALIGN(16);
-         *(.rodata)
+        *(.srodata .srodata.*)
+        . = ALIGN(16);
+        *(.rodata .rodata.*)
     }
 
     .data : {
         . = ALIGN(16);
-        boot/head.o(.data)
-        *(.data)
+        *(.sdata .sdata.*)
+        . = ALIGN(16);
+        *(.data .data.*)
     }
 
     .bss :{
-        . = ALIGN(4096);
+        . = ALIGN(16);
         PROVIDE(bss_start = .);
-        *(.bss)
-        . = ALIGN(4096);
+        *(.sbss .sbss.*)
+        . = ALIGN(16);
+        *(.bss .bss.*)
+        . = ALIGN(16);
         PROVIDE(bss_stop = .);
     }
-
+    . = ALIGN(4096);
     PROVIDE(end = .);
 }

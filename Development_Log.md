@@ -281,3 +281,7 @@ GPT说的:
 # Log 9 exit
 
 ![exit流程.drawio](./asset/exit流程.drawio.png)
+
+# Log 10 HD驱动
+
+一年前写的接口起作用了: https://github.com/LiuJiLan/RVOS_On_VisionFive2

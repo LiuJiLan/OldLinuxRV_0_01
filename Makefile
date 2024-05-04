@@ -25,7 +25,7 @@ OBJCOPY = ${CROSS_COMPILE}objcopy
 OBJDUMP = ${CROSS_COMPILE}objdump
 
 
-ARCHIVES=kernel/kernel.o mm/mm.o # fs/fs.o
+ARCHIVES=kernel/kernel.o mm/mm.o fs/fs.o
 LIBS	=lib/lib.a
 
 %.o : %.c
@@ -99,6 +99,7 @@ QEMU = qemu-system-riscv64
 QFLAGS = -smp 2 -M virt -bios default
 QFLAGS += -m 128M -nographic
 QFLAGS += -monitor telnet:127.0.0.1:5555,server,nowait
+# telnet 127.0.0.1 5555
 
 tools/system.elf: system.lds boot/head.o init/main.o \
 	$(ARCHIVES)  $(LIBS)
@@ -117,6 +118,9 @@ GDB = ${CROSS_COMPILE}gdb
 READELF = ${CROSS_COMPILE}readelf
 
 QFLAGS += -kernel tools/kernel.elf
+QFLAGS += -drive file=./debug/hdc2.img,if=none,format=raw,id=x0
+QFLAGS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
 
 .DEFAULT_GOAL := tools/kernel.elf
 
@@ -131,4 +135,5 @@ debug: tools/kernel.elf
 init/main.o: init/main.c include/linux/kernel.h include/stdarg.h \
  include/asm/sbi.h include/sys/types.h include/asm/asm.h \
  include/asm/asm_offsets.h include/linux/sched.h include/asm/ptrace.h \
- include/asm/system.h include/linux/config.h include/linux/mm.h
+ include/asm/system.h include/linux/config.h include/linux/fs.h \
+ include/linux/mm.h

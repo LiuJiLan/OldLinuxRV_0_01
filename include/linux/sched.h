@@ -7,7 +7,7 @@
 
 // 从Linux 0.12中引入的宏
 // 暂时设为64MiB
-#define TASK_SIZE	0x04000000
+#define TASK_SIZE	0x0000003FFFFFFFFFUL
 
 
 #define FIRST_TASK task[0]
@@ -16,6 +16,8 @@
 #include <asm/ptrace.h>
 #include <asm/system.h>
 #include <linux/config.h>
+
+#include <linux/fs.h>
 #include <linux/mm.h>
 
 extern union task_union init_task_union;

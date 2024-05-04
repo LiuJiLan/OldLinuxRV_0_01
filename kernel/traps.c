@@ -12,8 +12,7 @@ static void die(char * str, struct pt_regs * regs)
     printk("%s: %02x\n\r", str, regs->cause & 0x3fUL);
     printk("EPC:\t%p\nRA:\t%p\nSP:\t%p\nSTATUS:\t%p\nBADADDR:\t%p\n",
            regs->epc, regs->ra, regs->sp, regs->status, regs->badaddr);
-    //str(i);
-    //printk("Pid: %d, process nr: %d\n\r",current->pid,0xffff & i);
+    printk("Pid: %d\n\r", current->pid);
     printk("\n\r");
     do_exit(11);		/* play segment exception */
 }

@@ -21,7 +21,9 @@ uptr_t dtb_va = 0;
 
 #define PAGING_MEMORY (HIGH_MEMORY - LOW_MEM)
 #define PAGING_PAGES (PAGING_MEMORY/4096)
-#define MAP_NR(addr) (((unsigned long)(addr)-(unsigned long)P2V(LOW_MEM))>>12)
+//#define MAP_NR(addr) (((unsigned long)(addr)-(unsigned long)P2V(LOW_MEM))>>12)
+#define MAP_NR(addr) (((unsigned long)(addr)-P2V_WO(LOW_MEM))>>12)
+
 
 // 4096 bytes -> 2 bytes
 // 1MiB -> 512 bytes = 0.5 KiB
@@ -274,7 +276,7 @@ void paging_init(void) {
     ram_start = 0x10000UL;
     ram_end = ram_start + PAGE_SIZE;
     while (ram_start < ram_end) {
-        map_page(swapper_pg_dir, P2V(ram_start), ram_start, perm, 2, 0);
+        map_page(swapper_pg_dir, D_P2V_WO(ram_start), ram_start, perm, 2, 0);
         ram_start += PAGE_SIZE;
     }
 
@@ -282,7 +284,7 @@ void paging_init(void) {
     ram_start = 0xC000000UL;
     ram_end = 0x10000000UL + PAGE_SIZE * 2;
     while (ram_start < ram_end) {
-        map_page(swapper_pg_dir, P2V(ram_start), ram_start, perm, 2, 0);
+        map_page(swapper_pg_dir, D_P2V_WO(ram_start), ram_start, perm, 2, 0);
         ram_start += PAGE_SIZE;
     }
 
@@ -356,7 +358,7 @@ void do_wp_page(unsigned long address, pte_t * table_entry) {
          do_exit(SIGSEGV);
     }
 
-    //do_exit(SIGSEGV);是对当前进程来做的, 发生了就会不会往下面走了, 相当于return
+    // do_exit是对当前进程来做的, 发生了就会不会往下面走了, 相当于return
 
     // 之前已经检查过了, 不用再检查
     mem_map[MAP_NR(old_page)]--;
@@ -398,6 +400,11 @@ void do_page_fault(struct pt_regs *regs) {
     if (badaddr < PAGE_SIZE || badaddr >= TASK_SIZE) {
         // 仅允许对用户空间做缺页操作, 至少暂时是
         printk("Page Fault on pid:%d at %p.\n", current->pid, regs->badaddr);
+//        if (table_entry != NULL && (*table_entry | PTE_V)) {
+//            printk("Page is Existed.\n");
+//        } else {
+//            printk("Page is Not Existed.\n");
+//        }
         do_exit(SIGSEGV);
     }
 

@@ -47,7 +47,7 @@ entry:
     // 与早期Linux使用的x86-32不一样,
     // rv gcc中只能取变量的地址
     la a2, boot_cpu_hartid
-    REG_S a0, (a2)
+    REG_S a0, 0(a2)
 
     // 第一次设置内核(服务)运行的环境
     la tp, init_task_union

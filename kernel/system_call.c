@@ -8,6 +8,10 @@
 // 为了解决一些神奇的报错
 fn_ptr sys_call_table[] = {sys_fork};
 
+int sys_execve(struct pt_regs * regs) {
+
+}
+
 void system_call(struct pt_regs * regs) {
     long syscall = regs->a7;    // 当前任务号
 

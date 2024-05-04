@@ -76,12 +76,11 @@ void irq_external_init(void) {
     uint32_t * p = (uint32_t*)PLIC_SENABLE(cpu, 0);
 
     // 清除可能的外部中断使能
-    // qemu上会有一些BUG, 因为QEMU的M态和S态使能混在一起来
-    // for (int i = 0; i < (PLIC_SOURCE_NR / 32 + 1); i++) {
-    //     *(p+i) = 0x0;
-    // }
-    //
-    // *(uint32_t*)PLIC_STHRESHOLD(cpu) = 0;
+     for (int i = 0; i < (PLIC_SOURCE_NR / 32 + 1); i++) {
+         *(p+i) = 0x0;
+     }
+
+     *(uint32_t*)PLIC_STHRESHOLD(cpu) = 0;
 
     csr_set(sie, RV_IRQ_EXT);
 }

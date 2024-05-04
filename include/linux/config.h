@@ -10,6 +10,12 @@
 
 #define THREAD_SIZE         (PAGE_SIZE << 1)
 
+// #define VA_BITS 39
+// #define VA_KERNEL (1UL << (VA_BITS - 1))
+
+// In sched.h
+// #define TASK_SIZE	(~1UL << (VA_BITS - 1))
+
 #define VA_KERNEL       0xFFFFFFC000000000U
 #define LD_VA_KERNEL    0xFFFFFFC000000000 // 为了链接脚本
 #define PA_KERNEL       (RAM_START + SBI_SIZE)
@@ -24,6 +30,12 @@
 #define V2P_WO(x) ((x) - V_P_DIFF)    // same as V2P, but without casts //  不带类型转换
 #define P2V_WO(x) ((x) + V_P_DIFF)    // same as P2V, but without casts
 
+// 临时给设备用, vma之后再调
+#define D_VA_START      0xffffffff80000000UL // -2GiB
+#define D_PA_START      0x0UL
+#define D_V_P_DIFF        (D_VA_START - D_PA_START)
+#define D_V2P_WO(x) ((x) - D_V_P_DIFF)
+#define D_P2V_WO(x) ((x) + D_V_P_DIFF)
 
 //  ### //
 //  这块放置不同平台相关的数值
@@ -43,11 +55,11 @@
 // for QEMU
 #define PLIC_SOURCE_NR          54
 #define PLIC_BASE_PA            0x0c000000UL
-#define PLIC_BASE               P2V_WO(PLIC_BASE_PA)
+#define PLIC_BASE               D_P2V_WO(PLIC_BASE_PA)
 #define PLIC_PRIORITY(id)       (PLIC_BASE + (id) * 4)
 #define PLIC_PENDING(id)        (PLIC_BASE + 0x1000 + ((id) / 32) * 4)
 #define PLIC_SENABLE(hart, id)  (PLIC_BASE + 0x2080 + (hart) * 0x100 + ((id) / 32) * 4)
-#define PLIC_STHRESHOLD(hart)   (PLIC_BASE + 0x200000 + (hart) * 0x2000)
+#define PLIC_STHRESHOLD(hart)   (PLIC_BASE + 0x201000 + (hart) * 0x2000)
 #define PLIC_SCLAIM(hart)       (PLIC_BASE + 0x201004 + (hart) * 0x2000)
 #define PLIC_SCOMPLETE(hart)    (PLIC_BASE + 0x201004 + (hart) * 0x2000)
 
@@ -55,7 +67,7 @@
 // for VF2
 //#define PLIC_SOURCE_NR 136
 //#define PLIC_BASE_PA 0x0c000000UL
-//#define PLIC_BASE    P2V_WO(PLIC_BASE_PA)
+//#define PLIC_BASE    D_P2V_WO(PLIC_BASE_PA)
 //#define PLIC_PRIORITY(id) (PLIC_BASE + (id) * 4)
 //#define PLIC_PENDING(id) (PLIC_BASE + 0x1000 + ((id) / 32) * 4)
 //#define PLIC_SENABLE(hart, id) (PLIC_BASE + 0x2000 + (hart) * 0x100 + ((id) / 32) * 4)
@@ -74,34 +86,7 @@
 #define BUFFER_END (RAM_START + SBI_SIZE + BUFFER_SIZE)
 
 
-
-/* #define LASU_HD */
-#define LINUS_HD
-
 /* Root device at bootup. */
-#if	defined(LINUS_HD)
-#define ROOT_DEV 0x306
-#elif	defined(LASU_HD)
-#define ROOT_DEV 0x302
-#else
-#error "must define HD"
-#endif
-
-/*
- * HD type. If 2, put 2 structures with a comma. If just 1, put
- * only 1 struct. The structs are { HEAD, SECTOR, TRACKS, WPCOM, LZONE, CTL }
- *
- * NOTE. CTL is supposed to be 0 for drives with less than 8 heads, and
- * 8 if heads >= 8. Don't know why, and I haven't tested it on a drive with
- * more than 8 heads, but that is what the bios-listings seem to imply. I
- * just love not having a manual.
- */
-#if	defined(LASU_HD)
-#define HD_TYPE { 7,35,915,65536,920,0 }
-#elif	defined(LINUS_HD)
-#define HD_TYPE { 5,17,980,300,980,0 },{ 5,17,980,300,980,0 }
-#else
-#error "must define a hard-disk type"
-#endif
+#define ROOT_DEV 0x0301 //第一个硬盘第一个分区
 
 #endif
