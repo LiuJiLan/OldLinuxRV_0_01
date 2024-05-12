@@ -124,41 +124,45 @@ void rw_hd(int rw, struct buffer_head * bh)
     cyl = block / hd_info[dev].head;
 
     // 对于virtio的驱动来说, 多此一举, 最后还要重新算一遍
+    // 另外, 由于一般算硬盘的时候是从1开始编号的
     rw_abs_hd(rw,dev,sec+1,head,cyl,bh);
 }
 
+extern void printk_init(void);
 /* This may be used only once, enforced by 'static int callable' */
-//int sys_setup(void)
-//{
-//	static int callable = 1;
-//	int i,drive;
-//	struct partition *p;
-//
-//	if (!callable)
-//		return -1;
-//	callable = 0;
-//	for (drive=0 ; drive<NR_HD ; drive++) {
-//		rw_abs_hd(READ,drive,1,0,0,(struct buffer_head *) start_buffer);
-//		if (!start_buffer->b_uptodate) {
-//			printk("Unable to read partition table of drive %d\n\r",
-//				drive);
-//			panic("");
-//		}
-//		if (start_buffer->b_data[510] != 0x55 || (unsigned char)
-//		    start_buffer->b_data[511] != 0xAA) {
-//			printk("Bad partition table on drive %d\n\r",drive);
-//			panic("");
-//		}
-//		p = 0x1BE + (void *)start_buffer->b_data;
-//		for (i=1;i<5;i++,p++) {
-//			hd[i+5*drive].start_sect = p->start_sect;
-//			hd[i+5*drive].nr_sects = p->nr_sects;
-//		}
-//	}
-//	printk("Partition table%s ok.\n\r",(NR_HD>1)?"s":"");
-//	mount_root();
-//	return (0);
-//}
+int sys_setup(struct pt_regs * regs)
+{
+	static int callable = 1;
+	int i,drive;
+	struct partition *p;
+
+    printk_init();
+
+	if (!callable)
+		return -1;
+	callable = 0;
+	for (drive=0 ; drive<NR_HD ; drive++) {
+		rw_abs_hd(READ,drive,1,0,0,(struct buffer_head *) start_buffer);
+		if (!start_buffer->b_uptodate) {
+			printk("Unable to read partition table of drive %d\n\r",
+				drive);
+			panic("");
+		}
+		if (start_buffer->b_data[510] != 0x55 || (unsigned char)
+		    start_buffer->b_data[511] != 0xAA) {
+			printk("Bad partition table on drive %d\n\r",drive);
+			panic("");
+		}
+		p = 0x1BE + (void *)start_buffer->b_data;
+		for (i=1;i<5;i++,p++) {
+			hd[i+5*drive].start_sect = p->start_sect;
+			hd[i+5*drive].nr_sects = p->nr_sects;
+		}
+	}
+	printk("Partition table%s ok.\n\r",(NR_HD>1)?"s":"");
+	mount_root();
+	return (0);
+}
 
 /*
  * This is the pointer to a routine to be executed at every hd-interrupt.
@@ -420,6 +424,9 @@ repeat:
 
 // 原汇编部分
 void hd_interrupt(struct pt_regs * regs) {
+    // 原版有用的是trap gate, 所以在中断处理里面我们把中断打开
+    local_irq_enable();
+
     void (*intr_func)(void) = do_hd;
     do_hd = NULL;
     if (intr_func) {
@@ -427,6 +434,8 @@ void hd_interrupt(struct pt_regs * regs) {
     } else {
         unexpected_hd_interrupt();
     }
+
+    local_irq_disable();
 }
 
 void hd_init(void)

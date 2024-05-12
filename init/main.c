@@ -1,6 +1,9 @@
+#include <linux/tty.h>
+#include <linux/sched.h>
+#include <asm/system.h>
+
 #include <linux/kernel.h>
 #include <asm/sbi.h>
-#include <linux/sched.h>
 #include <linux/fs.h>
 
 unsigned long boot_cpu_hartid;
@@ -13,6 +16,7 @@ static inline void ebreak() {
 extern void paging_init(void);
 extern void trap_init(void);
 extern void irq_init(void);
+//extern void tty_init(void);
 int sbi_printf(const char *fmt, ...);
 
 void start_kernel(void){
@@ -22,17 +26,20 @@ void start_kernel(void){
     paging_init();
     trap_init();
     irq_init();
-    // tty_init();
+    tty_init();
     sched_init();
     buffer_init();
     hd_init();
 
+    ebreak();
+    sbi_printf("We are here at %ld\n", boot_cpu_hartid);
+    print_debug("Break Point.\n");
 
     // sti();
     // 我们不需要在内核里开中断, 因为我们可以用RISC-V的xstatus来一次性开启中断
     // move_to_user_mode();
-    sbi_printf("We are here at %ld\n", boot_cpu_hartid);
-    ebreak();
+
+
 
     while (1) {
 

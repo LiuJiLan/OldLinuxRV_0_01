@@ -28,6 +28,10 @@ union task_union init_task_union = {{
         // 其他以默认的方式变为0
         .father         = -1,
 
+        /* fs info */
+        .tty            = -1,
+        .umask          = 0133,
+
         .thread         = INIT_THREAD
     },
 };
@@ -129,11 +133,16 @@ void schedule(void)
     context_switch(current, next);
 }
 
-int sys_pause(void)
+int do_pause(void)
 {
     current->state = TASK_INTERRUPTIBLE;
     schedule();
     return 0;
+}
+
+int sys_pause(struct pt_regs * regs)
+{
+    return do_pause();
 }
 
 void sleep_on(struct task_struct **p)

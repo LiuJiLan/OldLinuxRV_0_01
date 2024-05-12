@@ -100,12 +100,12 @@ struct task_struct {
     unsigned short used_math;
 
     /* file system info */
-//    int tty;		/* -1 if no tty, so it must be signed */
-//    unsigned short umask;
-//    struct m_inode * pwd;
-//    struct m_inode * root;
-//    unsigned long close_on_exec;
-//    struct file * filp[NR_OPEN];
+    int tty;		/* -1 if no tty, so it must be signed */
+    unsigned short umask;
+    struct m_inode * pwd;
+    struct m_inode * root;
+    unsigned long close_on_exec;
+    struct file * filp[NR_OPEN];
 
     struct thread_struct		thread;
 };

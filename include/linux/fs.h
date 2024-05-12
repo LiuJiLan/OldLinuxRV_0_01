@@ -101,13 +101,13 @@ struct m_inode {
 	unsigned char i_update;
 };
 
-//#define PIPE_HEAD(inode) (((long *)((inode).i_zone))[0])
-//#define PIPE_TAIL(inode) (((long *)((inode).i_zone))[1])
-//#define PIPE_SIZE(inode) ((PIPE_HEAD(inode)-PIPE_TAIL(inode))&(PAGE_SIZE-1))
-//#define PIPE_EMPTY(inode) (PIPE_HEAD(inode)==PIPE_TAIL(inode))
-//#define PIPE_FULL(inode) (PIPE_SIZE(inode)==(PAGE_SIZE-1))
-//#define INC_PIPE(head) \
-//__asm__("incl %0\n\tandl $4095,%0"::"m" (head))
+#define PIPE_HEAD(inode) (((long *)((inode).i_zone))[0])
+#define PIPE_TAIL(inode) (((long *)((inode).i_zone))[1])
+#define PIPE_SIZE(inode) ((PIPE_HEAD(inode)-PIPE_TAIL(inode))&(PAGE_SIZE-1))
+#define PIPE_EMPTY(inode) (PIPE_HEAD(inode)==PIPE_TAIL(inode))
+#define PIPE_FULL(inode) (PIPE_SIZE(inode)==(PAGE_SIZE-1))
+#define INC_PIPE(head) (head = (head + 1) & 0xFFFUL)
+
 
 struct file {
 	unsigned short f_mode;
@@ -142,44 +142,36 @@ struct dir_entry {
 	char name[NAME_LEN];
 };
 
-//extern struct m_inode inode_table[NR_INODE];
-//extern struct file file_table[NR_FILE];
-//extern struct super_block super_block[NR_SUPER];
+extern struct m_inode inode_table[NR_INODE];
+extern struct file file_table[NR_FILE];
+extern struct super_block super_block[NR_SUPER];
 extern struct buffer_head * start_buffer;
-//extern int nr_buffers;
-//
-//extern void truncate(struct m_inode * inode);
-//extern void sync_inodes(void);
-//extern void wait_on(struct m_inode * inode);
-//extern int bmap(struct m_inode * inode,int block);
-//extern int create_block(struct m_inode * inode,int block);
-//extern struct m_inode * namei(const char * pathname);
-//extern int open_namei(const char * pathname, int flag, int mode,
-//	struct m_inode ** res_inode);
-//extern void iput(struct m_inode * inode);
-//extern struct m_inode * iget(int dev,int nr);
-//extern struct m_inode * get_empty_inode(void);
-//extern struct m_inode * get_pipe_inode(void);
-//extern struct buffer_head * get_hash_table(int dev, int block);
-//extern struct buffer_head * getblk(int dev, int block);
-//extern void ll_rw_block(int rw, struct buffer_head * bh);
-//extern void brelse(struct buffer_head * buf);
-//extern struct buffer_head * bread(int dev,int block);
-//extern int new_block(int dev);
-//extern void free_block(int dev, int block);
-//extern struct m_inode * new_inode(int dev);
-//extern void free_inode(struct m_inode * inode);
-//
-//extern void mount_root(void);
+extern int nr_buffers;
 
-//extern inline struct super_block * get_super(int dev)
-//{
-//	struct super_block * s;
-//
-//	for(s = 0+super_block;s < NR_SUPER+super_block; s++)
-//		if (s->s_dev == dev)
-//			return s;
-//	return NULL;
-//}
+extern void truncate(struct m_inode * inode);
+extern void sync_inodes(void);
+extern void wait_on(struct m_inode * inode);
+extern int bmap(struct m_inode * inode,int block);
+extern int create_block(struct m_inode * inode,int block);
+extern struct m_inode * namei(const char * pathname);
+extern int open_namei(const char * pathname, int flag, int mode,
+	struct m_inode ** res_inode);
+extern void iput(struct m_inode * inode);
+extern struct m_inode * iget(int dev,int nr);
+extern struct m_inode * get_empty_inode(void);
+extern struct m_inode * get_pipe_inode(void);
+extern struct buffer_head * get_hash_table(int dev, int block);
+extern struct buffer_head * getblk(int dev, int block);
+extern void ll_rw_block(int rw, struct buffer_head * bh);
+extern void brelse(struct buffer_head * buf);
+extern struct buffer_head * bread(int dev,int block);
+extern int new_block(int dev);
+extern void free_block(int dev, int block);
+extern struct m_inode * new_inode(int dev);
+extern void free_inode(struct m_inode * inode);
+
+extern void mount_root(void);
+
+extern struct super_block * get_super(int dev);
 
 #endif

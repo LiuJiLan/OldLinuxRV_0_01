@@ -9,8 +9,8 @@
 
 #include <string.h>
 
-int sys_pause(void);
-//int sys_close(int fd);
+int do_pause(void);
+int do_close(int fd);
 
 void release(struct task_struct * p) {
     int i;
@@ -54,8 +54,8 @@ void do_kill(long pid,long sig,int priv) {
 }
 
 int sys_kill(struct pt_regs * regs) {
-    int pid = regs->a1;
-    int sig = regs->a2;
+    int pid = regs->a0;
+    int sig = regs->a1;
     do_kill(pid,sig,!(current->uid || current->euid));
     return 0;
 }
@@ -73,15 +73,15 @@ int do_exit(long code)
     for (i=0 ; i<NR_TASKS ; i++)
         if (task[i] && task[i]->father == current->pid)
             task[i]->father = 0;
-//    for (i=0 ; i<NR_OPEN ; i++)
-//        if (current->filp[i])
-//            sys_close(i);
-//    iput(current->pwd);
-//    current->pwd=NULL;
-//    iput(current->root);
-//    current->root=NULL;
-//    if (current->leader && current->tty >= 0)
-//        tty_table[current->tty].pgrp = 0;
+    for (i=0 ; i<NR_OPEN ; i++)
+        if (current->filp[i])
+            do_close(i);
+    iput(current->pwd);
+    current->pwd=NULL;
+    iput(current->root);
+    current->root=NULL;
+    if (current->leader && current->tty >= 0)
+        tty_table[current->tty].pgrp = 0;
     if (last_task_used_math == current)
         last_task_used_math = NULL;
 
@@ -104,8 +104,12 @@ int sys_exit(int error_code)
     return do_exit((error_code&0xff)<<8);
 }
 
-int sys_waitpid(pid_t pid,int * stat_addr, int options)
+int sys_waitpid(struct pt_regs * regs)
 {
+    pid_t pid = regs->a0;
+    int * stat_addr = regs->a1;
+    int options = regs->a2;
+
     int flag=0;
     struct task_struct ** p;
 
@@ -119,11 +123,7 @@ int sys_waitpid(pid_t pid,int * stat_addr, int options)
             if ((*p)->father == current->pid) {
                 flag=1;
                 if ((*p)->state==TASK_ZOMBIE) {
-                    memcpy((unsigned long *) stat_addr,
-                           &(*p)->exit_code,
-                           sizeof(long));
-                    // put_fs_long((*p)->exit_code,
-                    //             (unsigned long *) stat_addr);
+                    *(unsigned int *) stat_addr = (*p)->exit_code;
                     current->cutime += (*p)->utime;
                     current->cstime += (*p)->stime;
                     flag = (*p)->pid;
@@ -134,7 +134,7 @@ int sys_waitpid(pid_t pid,int * stat_addr, int options)
     if (flag) {
         if (options & WNOHANG)
             return 0;
-        sys_pause();
+        do_pause();
         if (!(current->signal &= ~(1<<(SIGCHLD-1))))
             goto repeat;
         else

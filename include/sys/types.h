@@ -3,6 +3,8 @@
 
 #include <asm/asm.h>
 
+typedef long time_t;
+
 #define NULL ((void *) 0)
 
 typedef char                int8;

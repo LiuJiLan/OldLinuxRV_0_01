@@ -132,8 +132,8 @@ debug: tools/kernel.elf
 	${GDB} tools/kernel.elf -q -x $(DEBUG)/gdbinit.txt
 
 ### Dependencies:
-init/main.o: init/main.c include/linux/kernel.h include/stdarg.h \
- include/asm/sbi.h include/sys/types.h include/asm/asm.h \
- include/asm/asm_offsets.h include/linux/sched.h include/asm/ptrace.h \
- include/asm/system.h include/linux/config.h include/linux/fs.h \
- include/linux/mm.h
+init/main.o: init/main.c include/linux/tty.h include/termios.h \
+ include/linux/sched.h include/asm/ptrace.h include/sys/types.h \
+ include/asm/asm.h include/asm/asm_offsets.h include/asm/system.h \
+ include/linux/config.h include/linux/fs.h include/linux/mm.h \
+ include/linux/kernel.h include/stdarg.h include/asm/sbi.h

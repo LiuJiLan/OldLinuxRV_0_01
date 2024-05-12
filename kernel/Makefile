@@ -33,8 +33,8 @@ CPP     = ${CROSS_COMPILE}cpp -nostdinc -I../include
 #	mktime.o
 
 OBJS  = sched.o system_call.o traps.o entry.o irq.o fork.o \
-		panic.o printk.o vsprintf.o signal.o \
-		hd.o virtio.o sys.o exit.o \
+		panic.o printk.o vsprintf.o tty_io.o signal.o \
+		rs_io.o hd.o virtio.o sys.o exit.o serial.o \
 		sbi.o
 
 kernel.o: $(OBJS)
@@ -76,12 +76,23 @@ irq.s irq.o: irq.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/linux/sys.h ../include/linux/kernel.h ../include/stdarg.h
 panic.s panic.o: panic.c ../include/linux/kernel.h ../include/stdarg.h
 printk.s printk.o: printk.c ../include/stdarg.h ../include/linux/kernel.h
+rs_io.s rs_io.o: rs_io.c ../include/linux/config.h ../include/linux/sched.h \
+ ../include/asm/ptrace.h ../include/sys/types.h ../include/asm/asm.h \
+ ../include/asm/asm_offsets.h ../include/asm/system.h \
+ ../include/linux/fs.h ../include/linux/mm.h ../include/linux/tty.h \
+ ../include/termios.h ../include/linux/kernel.h ../include/stdarg.h \
+ ../include/linux/hdreg.h ../include/linux/trap.h ../include/string.h
 sbi.s sbi.o: sbi.c ../include/asm/sbi.h ../include/sys/types.h \
  ../include/asm/asm.h ../include/asm/asm_offsets.h
 sched.s sched.o: sched.c ../include/linux/sched.h ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/config.h ../include/linux/fs.h \
  ../include/linux/mm.h ../include/linux/trap.h ../include/signal.h
+serial.s serial.o: serial.c ../include/linux/tty.h ../include/termios.h \
+ ../include/linux/sched.h ../include/asm/ptrace.h ../include/sys/types.h \
+ ../include/asm/asm.h ../include/asm/asm_offsets.h \
+ ../include/asm/system.h ../include/linux/config.h ../include/linux/fs.h \
+ ../include/linux/mm.h ../include/linux/trap.h
 signal.s signal.o: signal.c ../include/signal.h ../include/sys/types.h \
  ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/ptrace.h ../include/asm/system.h ../include/linux/sched.h \
@@ -91,7 +102,8 @@ sys.s sys.o: sys.c ../include/errno.h ../include/linux/sched.h \
  ../include/asm/ptrace.h ../include/sys/types.h ../include/asm/asm.h \
  ../include/asm/asm_offsets.h ../include/asm/system.h \
  ../include/linux/config.h ../include/linux/fs.h ../include/linux/mm.h \
- ../include/linux/kernel.h ../include/stdarg.h
+ ../include/linux/tty.h ../include/termios.h ../include/linux/kernel.h \
+ ../include/stdarg.h ../include/sys/times.h ../include/sys/utsname.h
 system_call.s system_call.o: system_call.c ../include/asm/ptrace.h \
  ../include/sys/types.h ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/asm/system.h ../include/linux/trap.h \
@@ -102,6 +114,12 @@ traps.s traps.o: traps.c ../include/linux/trap.h ../include/asm/ptrace.h \
  ../include/asm/system.h ../include/linux/config.h \
  ../include/linux/sched.h ../include/linux/fs.h ../include/linux/mm.h \
  ../include/linux/kernel.h ../include/stdarg.h
+tty_io.s tty_io.o: tty_io.c ../include/ctype.h ../include/errno.h \
+ ../include/signal.h ../include/sys/types.h ../include/asm/asm.h \
+ ../include/asm/asm_offsets.h ../include/asm/ptrace.h \
+ ../include/asm/system.h ../include/linux/sched.h \
+ ../include/linux/config.h ../include/linux/fs.h ../include/linux/mm.h \
+ ../include/linux/tty.h ../include/termios.h ../include/linux/trap.h
 virtio.s virtio.o: virtio.c ../include/linux/virtio.h ../include/sys/types.h \
  ../include/asm/asm.h ../include/asm/asm_offsets.h \
  ../include/linux/config.h ../include/linux/kernel.h ../include/stdarg.h
